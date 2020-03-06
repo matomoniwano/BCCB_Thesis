@@ -1,0 +1,15 @@
+#!/bin/bash
+SRR=()
+filepath="$PWD/$1"
+pat=$(cat $filepath)
+for number in $pat
+do
+SRR+=("$number")
+done
+
+for SR in ${SRR[@]}
+do 
+~/jacobs/BCCB_project/sratoolkit.2.10.0-ubuntu64/bin/fastq-dump --split-files "$SR"
+done
+
+
