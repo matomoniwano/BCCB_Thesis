@@ -54,7 +54,7 @@ sample.names <- sapply(strsplit(basename(fnFs), "_L"), `[`, 1)
 ### Visualizing the quality of the fastq files before filtering and trimming
 
 ```{r}
-plotQualityProfile(fnFs[1:2])
+plotQualityProfile(fnFs[1:5])
 plotQualityProfile(fnRs[1:2])
 ```
 
@@ -77,14 +77,14 @@ names(filtRs) <- sample.names
 
 ### - filtering and trimming- 
 discard low quality reads and primers. 
-
+ 
 ```{r}
 out <- filterAndTrim(
   fwd = fnFs,
   filt = filtFs, 
   rev = fnRs,
   filt.rev = filtRs,
-  truncLen=c(200,150),
+  truncLen=c(250,200),
   trimLeft = c(17, 18),
   maxN=0,
   maxEE=c(1),
@@ -135,19 +135,94 @@ plotErrors(errF, nominalQ=TRUE)
 The red line is expected line based on the given quality score, the black line indicates the estimated line, and the black dots shows the observed error frequency in each consensus quality score. Ideally, the black dots should follow the track of the black line. 
 From the graph above, the black dots follow the trend of black line, and the error rates drop with increased quality as expected. This is reasonable error inference. 
 
+### -Dereplication combines all identical sequenceing reads into "unique sequence" witha corresponding "abundance"-
+```{r}
+# forward files
+derep_forward <- derepFastq(filtFs, verbose=TRUE)
+# Name the derep-class object by the sample names. 
+names(derep_forward) <- sample.names
+
+# reverse files
+derep_reverse <- derepFastq(filtRs, verbose = TRUE)
+names(derep_reverse) <- sample.names
+
+```
+- **verbose** = if TRUE, throw standardR messengeson the intermittent and final status of the dereplication. In this case, it is set to TRUE so that the process of dereplication is show in the intermittent. 
 
 ### Sample Inference
 This process contains removal of unique sequences that were produced by error. 
 
 ```{r}
-dadaFs <- dada(filtFs, err=errF, multithread=TRUE, pool="pseudo")
-dadaRs <- dada(filtRs. err=errR, multithread=TRUE, pool="pseudo")
+dadaFs <- dada(derep_forward, err=errF, multithread=TRUE, pool="pseudo")
+dadaRs <- dada(derep_reverse, err=errR, multithread=TRUE, pool="pseudo")
 dadaFs[[1]]
 ```
 - **err** = 16xN numeric matrix, or an object coercible by getErrors such as the output of the learnErrors function operated in the previous step. 'errF' is the name of variable that was used to store the result from the previous step.
 - **pool** = If pool = TRUE, the algorithm will pool together all samples prior to sample inference. If pool = FALSE, sample inference is performed on each sample individually. If pool = "pseudo", the algorithm will perform pseudo-pooling between individually processed samples. In other words, when sample A has 1000 copies of of sequence Z while sample B only contains one single copy of sequence Z, sequence Z is likely to be filtered out of sample B although it was a true "singleton" among other sequences in the sample B. This is what is expected to happen when the parameter 'pool' is set to FALSE. On the other hand, when the paramter 'pool' is set to TRUE, it is going to require inconvinient over-workload of computation if the large datasets are processed. For this reason, the parameter "pseudo" option lies somewhere between these two pooling options. Pesudo option contains a two step process i which independent processing is performed twice: First on the raw data alone, and then on the raw data again but informed by priors generated from the first round of processing in the second time. Pseudo-pooling provides a more accurate resolution of ASVs. For this reason, pseudo option is used in this datasets. 
 
-```{r}
+From the first sample, 132 true sequence variants from the 2967 unique sequence are detected. 
 
+
+### Merging forward and reverse reads together. 
+
+```{r}
+mergers <- mergePairs(dadaFs, derep_forward, dadaRs, derep_reverse, verbose=TRUE)
+# Inspect the merger data.frame from the first sample
+head(mergers[1:5])
 ```
+
+Now the forward and the reverse files are merged. 
+
+### - Construction of ASV files- 
+
+```{r}
+seqtab <- makeSequenceTable(samples = mergers)
+dim(seqtab)
+# inspect distribution of sequence lengths
+table(nchar(getSequences(seqtab)))
+
+#remove non-target length sequences from the sequence table
+seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 349:451]
+table(nchar(getSequences(seqtab2)))
+``` 
+
+### -Chimera detection- 
+```{r}
+seqtab.nochim <- removeBimeraDenovo(unqs = seqtab2, method = "consensus", multithread = TRUE, verbose = TRUE)
+dim(seqtab.nochim)
+sum(seqtab.nochim)/sum(seqtab)
+```
+Chimera is an errous biological sequence derived from two parent sequences during the process of amplification 
+- **unqs** = Object that can be coerced in to one with getUniques. In this case seqtab from the previous step.
+- **method** = If "pooled": The samples in the sequence table are all pooled together for bimera identification. If "consensus": The samples in a sequence table are independently checked for bimeras, and a consensus decision on each sequence variant is made. If "per-sample": The samples in a sequence table are independently checked for bimeras, and sequence variants are removed (zeroed-out) from samples independently.
+- **verbose** = print verbose text output if TRUE. 
+
+The table contains 1572 ASVs from 25 samples. 
+
+only 2 % of the sequences were chimeras. 
+
+### -Tracking the reads from the pipeline-
+```{r}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN),sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+# if processing a single sample, remove the sapply calls
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+
+### -Assigning Taxonomy- the general fasta release files can be downloaded from https://unite.ut.ee/repository.php
+```{r}
+taxa <- assignTaxonomy(
+  seq = seqtab.nochim, 
+  refFasta = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_project\\amplicon_analysis_GOM\\silva_nr_v132_train_set.fa.gz", multithread=TRUE)
+taxa.print <- taxa # Removing sequence rownames for display only 
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+
+
+
+
 
