@@ -1,0 +1,27 @@
+---
+title: "EEC_DADA2"
+output: html_document
+---
+
+DADA2 processing of data for eastern English Channel study.
+
+This R-markdown document includes a pipeline for data processing of amplicon data taken from the publication by [link](https://doi. org/10.1371/journal.pone.0196987).
+
+### Version of all the programs and tools used n this R markdown. 
+
+**R** = 3.6.1
+**R studio** = 1.2.1335
+**dada2** = 1.12.1
+
+### Downloading raw sequence data from the database. 
+
+```{engine='bash'}
+
+# Download sequnce data collected from Feb 2013 to July 2015 
+./fastq_download.txt SRR_Feb2013_July2015.txt
+
+# Download sequence data collected from March 2011 to July 2013
+./fastq_download.txt SRR_Mar2011_July2013
+
+```
+
