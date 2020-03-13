@@ -1,0 +1,102 @@
+---
+title: "Peakpoc_metadata_average_import"
+output: html_document
+---
+DADA2 processing of data for eastern English Channel study.
+
+This R-markdown document includes a pipeline for data processing of amplicon data taken from the publication by [link](https://doi. org/10.1371/journal.pone.0196987).
+
+### Version of all the programs and tools used n this R markdown. 
+
+**R** = 3.6.1
+**R studio** = 1.2.1335
+**tidyr** = 1.0.0
+**dplyr** = 1.4.2
+
+
+### Loading required libraries
+
+```{r}
+library(tidyr)
+library(dplyr)
+```
+
+### Importing data
+
+```{r}
+# Loading environmental data and metadata table
+
+#Sea surface temperature
+dsst <- read.csv("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\SST_IV.csv", sep =",", dec = ".", header=T, row.names = NULL)
+
+# Ice concentration
+dICEC <- read.delim("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\IV_20000101-20161231.txt", sep ="", dec = ".", header=T, row.names = NULL)
+
+# CHlorophyll a
+dCH1a_HGIV <- read.delim("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\IV_CMEMS-CHL-Arctic-oc5ci_20000101-20161231.txt", sep="", dec =".", header=T, row.names = NULL)
+
+# Metadata 
+metadata <- read.csv("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\Metadata_EUK_forMatomo.csv", sep=",", dec=".", header=T, row.names = NULL)
+
+```
+
+### Rearrange the data
+
+```{r}
+cols <- c("year", "month", "day")
+cols2 <- c("YEAR", "MONTH", "DAY")
+cols3 <- c("Year", "Month", "Day")
+
+dsst$date <- apply( dsst[ , cols ] , 1 , paste , collapse = "-" )
+dsst$date <- as.Date(dsst$date, format = "%Y-%m-%d")
+dICEC$date <- apply( dICEC[ , cols2 ] , 1 , paste , collapse = "-" )
+dICEC$date <- as.Date(dICEC$date, format = "%Y-%m-%d")
+dCH1a_HGIV$date <- apply( dCH1a_HGIV[ , cols3 ] , 1 , paste , collapse = "-" )
+dCH1a_HGIV$date <- as.Date(dCH1a_HGIV$date, format = "%Y-%m-%d")
+```
+
+### fix the concentrations values
+```{r}
+dsst$sst <- as.numeric(dsst$sst)
+dICEC$ICEC <- as.numeric(dICEC$ICEC)
+dCH1a_HGIV$CHL <- as.numeric(dCH1a_HGIV$CHL)
+```
+
+### get the mean according to the date
+
+```{r}
+#the function will store as a new column on the metadata table
+
+for (beginning in metadata$collection_date_start){
+  finish <- metadata %>% filter(collection_date_start == beginning) %>% select(collection_date_end)
+  finish <- as.Date(finish$collection_date_end, "%Y-%m-%d")
+  beginning <- as.Date(beginning, "%Y-%m-%d")
+
+metadata$sst <- apply(metadata,1, function(z) {
+  mean(dsst$sst[which(dsst$date >= z[beginning] & dsst$date <= z[finish])], na.rm=T)
+}
+)
+metadata$dICEC <- apply(metadata, 1, function(z) {
+  mean(dICEC$ICEC[which(dICEC$date >= z[beginning] & dICEC$date <= z[finish])], na.rm=T)
+}
+)
+
+metadata$dCH1a_HGIV <- apply(metadata, 1, function(z) {
+  mean(dCH1a_HGIV$CHL[which(dCH1a_HGIV$date >= z[beginning] & dCH1a_HGIV$date <= z[finish])], na.rm=T)
+  
+  
+}
+)
+print(beginning)
+  print(finish)
+  print(mean(dsst$sst[which(dsst$date >= beginning & dsst$date <= finish)], na.rm=T))
+  print(mean(dICEC$ICEC[which(dICEC$date >= beginning & dICEC$date <= finish)], na.rm=T))
+  print(mean(dCH1a_HGIV$CHL[which(dCH1a_HGIV$date >= beginning & dCH1a_HGIV$date <= finish)], na.rm=T))
+  rm(finish)
+}
+
+
+write.csv(metadata, file = "./metadata_EUK_new.csv")
+
+```
+
