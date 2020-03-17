@@ -35,3 +35,17 @@ The eukaryotic microbial diversity of the Arctic will be analyzed using 18s rRNA
 
 
 
+
+
+### 11/03/2020
+
+I finished running a DADA2 pipeline for PeakPOC datasets. At this moment, I am currently working on assigning eukaryotic taxonomy to the 18s ASVs infered from DADA2. I will have to manually upload it to the SILVAngs and create a taxonomy table. 
+
+On top of this, I need to add environmental data to the metadata for PeakPOC datasets. This can be easily done by following magda's script. 
+
+As of now, I am stuck in retriving raw sequence files from EEC paper. The sequence file is multiplexed with 33 barcode sequences which some of the barcode sequences are identical, and it makes difficult to distinguish separate files. To solve this, I found this tool called deML which distinguishes two samples that have identical barcode sequences https://github.com/grenaud/deMLhttps://github.com/grenaud/deML
+
+
+
+
+

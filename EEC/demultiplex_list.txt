@@ -1,3 +1,4 @@
+#index1		#name
 ACGCTCGACA	05-06-12-EEC-Coast_L001_R1.fastq
 ATATCGCGAG	06-06-11-EEC-Coast_L001_R1.fastq
 CTCGCGTGTC	24-01-12-EEC-Coast_L001_R1.fastq

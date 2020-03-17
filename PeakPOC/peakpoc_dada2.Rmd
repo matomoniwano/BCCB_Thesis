@@ -211,17 +211,39 @@ rownames(track) <- sample.names
 head(track)
 ```
 
-### -Assigning Taxonomy- the general fasta release files can be downloaded from https://unite.ut.ee/repository.php
+### exporting files
 ```{r}
-taxa <- assignTaxonomy(
-  seq = seqtab.nochim, 
-  refFasta = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_project\\amplicon_analysis_GOM\\silva_nr_v132_train_set.fa.gz", multithread=TRUE)
-taxa.print <- taxa # Removing sequence rownames for display only 
-rownames(taxa.print) <- NULL
-head(taxa.print)
+
+# Giving our seq headers more manageable names
+asv_seqs <- colnames(seqtab.nochim)
+asv_headers <- vector(dim(seqtab.nochim)[2], mode="character")
+for (i in 1:dim(seqtab.nochim)[2]) {
+  asv_headers[i] <- paste(">ASV", i, seq="_")
+}
+
+# making and writing out a fast of our final ASV seqs:
+asv_fasta <- c(rbind(asv_headers, asv_seqs))s
+# File name can be changed by modifying "ASVs.fa"
+write(asv_fasta, "ASVs_peakpoc.fa") 
+
+
+# ASV table
+asv_tab <- t(seqtab.nochim)
+row.names(asv_tab) <- sub(">", "", asv_headers)
+# File name can be changed by modifying "ASVs_counts.tsv"
+write.table(asv_tab, "ASVs_peakpoc.tsv", sep="\t", quote=F, col.names=NA)
+
 ```
 
+### Taxonomy assignment using SILVAngs
+```{engine='bash'}
+# remove space in the sequence IDs 
 
+cat ASVs_peakpoc.fa | tr -d " " > ASVs_nospaces_peakpoc.fa
+
+# and upload this file with a similarity threshold 1 on the SILVAngs platoform. 
+
+```
 
 
 
