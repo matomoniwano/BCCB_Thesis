@@ -1,0 +1,7 @@
+#!/bin/bash
+FILES=$(ls "./fastq/2011-2013/identifier")
+
+for line in $(cat ./fastq/2011-2013/identifier/$1)
+do
+./fastq/2011-2013/fastq-tools-0.8/src/fastq-grep -i $line ./fastq/2011-2013_fastq/tobedemultiplexed/$2 >> ./fastq/2011-2013_fastq/$1.fastq
+done

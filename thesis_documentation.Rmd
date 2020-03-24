@@ -35,3 +35,55 @@ The eukaryotic microbial diversity of the Arctic will be analyzed using 18s rRNA
 
 
 
+
+
+### 11/03/2020
+
+I finished running a DADA2 pipeline for PeakPOC datasets. At this moment, I am currently working on assigning eukaryotic taxonomy to the 18s ASVs infered from DADA2. I will have to manually upload it to the SILVAngs and create a taxonomy table. 
+
+On top of this, I need to add environmental data to the metadata for PeakPOC datasets. This can be easily done by following magda's script. 
+
+As of now, I am stuck in retriving raw sequence files from EEC paper. The sequence file is multiplexed with 33 barcode sequences which some of the barcode sequences are identical, and it makes difficult to distinguish separate files. To solve this, I found this tool called deML which distinguishes two samples that have identical barcode sequences https://github.com/grenaud/deMLhttps://github.com/grenaud/deML
+
+
+### 12/03/2020
+
+Today's task was to produce a metadata table for PeakPOC samples using a script given from Magda. Although the scrip was written in a logical flow, it failed to add the desired value from input numbers. On top of this, I attempted to enhance the efficiency of this workload by creating a forloop script to automate the process. However, it also failed to add values in each row in the output file. At the end, I manually inserted the value in each row by hand, which would have been faster if I have known that I would spend almost 3 hours on figuring out the problem of this script. 
+
+### 13/03/2020
+
+Today's task was to upload an ASVs table of PeakPOC dataset onto silvangs platform to asssign taxonomy to each unique sequenceses. The problem I encounter was that I kept receiving error messages stating that the spaces between names of unique sequence IDs are causing to fail the process. I forwarded this problem to Raissa and she helped me with her command line that she previously used to solve the same issue. 
+
+```{engine='bash'}
+cat ASVs.fa | tr -d " " > ASVs_nospaces.fa
+```
+
+This removes the spaces in the sequence IDs.
+
+
+### 14/03/2020
+
+I received an email from the author of EEC paper. He mentioned that the sequencing company had two separate runs for their samples. This was the reason for having two identical barcode tag in two different samples. THe problem was occured because NCBI merged two separate runs together, causing it impposible to separate by indivudal samples. He also suggested that he can upload flow files on a ftp server for me to reanalyze it. I also had problem setting up this ftp server. At the end, I just sent him my one drive link to upload it to my folder directly. 
+
+### 15/ 03/2020
+
+I smoothly downloaded all the sequence files for the dataset from Japanese coast study. Right now I am running these files to DADA2. THe only concern I have is that these files sum up to a total of 8GB which is relatively large compared to other datasets I am using in this study. 
+
+### 17/03/2020
+
+I struggled demultiplexing the fastq file from EEC datasets for 2011-2013. Since this fastq file was sequenced in 454 pyrosequencing platform and the two of the runs were merged together on the NCBI database, it was impossible to demultiplex by the barcode tag listed on the description page. Fortunately, I received a response from the author of this paper, and the author provided me with the flow files for individual samples. By using unique identifer IDs from each flow file, I was able to demultiplex the fastq file using a tool called "fastq-grep". The pipeline for demultiplexing fastq file is uploaded on the github repository. 
+
+### 18/03/2020
+
+Another problem that I encounter from DADA2 was that the forward reads and the reverse reads from the Japanese datasets did not successfully merge together. As I looked thorugh the answer from Github issue on DADA2, I found that the number of overlapping reads between the forward file and the reverse was insufficient. I proceeded with just by using forward reads and I will come back to this issue once I catch up with my other work. 
+
+
+### 20/03/2020
+
+Sample selection for each publication
+
+PeakPOC ---- given by Magda.
+
+EEC ---- Selected 5 samples per year. The original publication mentioned that the bloom was occured usually during the early spring. 
+
+Japan ----- I selected sequence reads from 0m to 200m since chlorophyl concentration was measured within this depth range, and also the shift of diversity was dynamic in the shallower water column, concluded by the original publication

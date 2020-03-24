@@ -1,0 +1,179 @@
+---
+title: "peakpoc_analysis"
+output: html_document
+---
+
+## Analysis in R
+
+### setting the working directory
+
+```{r}
+setwd("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC")
+list.files()
+```
+
+### loading the packages
+
+```{r}
+
+# install.packages("phyloseq")
+# install.packages("vegan")s
+#install.packages("DESeq2")
+# install.packages("ggplot2")
+# install.packages("dendextend")
+# install.packages("tidyr")
+# install.packages("viridis")
+# install.packages("reshape")
+# install.packages("iNEXT")
+
+library("phyloseq")
+library("vegan")
+library("DESeq2")
+library("ggplot2")
+#library("dendextend")
+library("tidyr")
+library("viridis")
+library("reshape")
+library("dplyr")
+library("iNEXT")
+```
+
+
+## Checking the package version 
+
+```{r}
+packageVersion("phyloseq")
+packageVersion("vegan")
+packageVersion("DESeq2")
+packageVersion("ggplot2") 
+#packageVersion("dendextend")
+packageVersion("tidyr")
+packageVersion("viridis")
+packageVersion("reshape")
+packageVersion("iNEXT")
+```
+
+
+## Reading the exported data from the directory
+
+```{r}
+#write(asv_fasta, file = "ASVs_GOM.fa")
+#write.table(asv_tab, file = "ASVs_GOM.tsv", sep = "\t", quote = F, col.names = NA)
+#write.table(asv_tax, "ASVs_GOM_Taxa.tsv", sep = "\t", quote = F, col.names = NA)
+# moving on to 
+rm(list=ls())
+#Load ASV table
+count_tab_peakpoc <- read.table("ASVs_peakpoc.tsv", header=T, row.names=1, check.names=F, sep="\t")
+rownames(count_tab_peakpoc) <- gsub(" ", "", rownames(count_tab_peakpoc))
+#Load taxonomy table
+tax_tab_peakpoc <- as.matrix(read.table("ASVs_PeakPOC_Taxa.tsv", header=T, row.names=1, check.names=F, sep = "\t"))
+#Load sample matadata file
+sample_info_tab_peakpoc <- read.csv("metadata_EUK_new.csv", header = T, row.names = NULL, check.names = F, sep = ",")
+row.names(sample_info_tab_peakpoc) <- sample_info_tab_peakpoc$sample_name
+sample_info_tab_peakpoc <- sample_info_tab_peakpoc %>% select (-sample_name)
+#Check content of the metadata file
+sample_info_tab_peakpoc
+```
+
+- **sep** = a string used to separate columns. using sep = "\t" gives tab deliminated output
+- **quote** = a logical value or a numeric vector. If TRUE, any character or factor coluns will be surrounded by double quotes. If FALSE, nothing is quoted/
+- **col.names** = either a logical value indicating whether the column names of x are to be written along with x, or a character vector of column names to be written. 
+- **row.names** = a vector of row names. Setting it to 1 means the name of samples/ASV number is listed in the first column of the table
+
+## Assigning contigency tables and sample metadata into phyloseq object
+```{r}
+#read ASV table into OTU_table class object
+otu_1_peakpoc <- as.matrix(count_tab_peakpoc)
+otu_2_peakpoc <- decostand(count_tab_peakpoc, MARGIN = 2, method = "hellinger" )
+otu_i_peakpoc <- otu_table(otu_1_peakpoc, taxa_are_rows = T)
+otu_d_peakpoc <- otu_table(otu_2_peakpoc, taxa_are_rows = T)
+rm(otu_1_peakpoc)
+#rm(otu_2)
+#read taxonomy table into tax_table class object
+TAX_peakpoc <- tax_table(tax_tab_peakpoc)
+#read metadata file into sample_data class object
+samples_peakpoc <- sample_data(sample_info_tab_peakpoc)
+#Construct phyloseq object from the component objects above. 
+Ps_peakpoc <- phyloseq(otu_i_peakpoc, TAX_peakpoc, samples_peakpoc)
+Ps_hellinger <- phyloseq(otu_d_peakpoc, TAX_peakpoc, samples_peakpoc)
+#Check content of the object
+Ps_peakpoc
+Ps_hellinger
+
+```
+
+
+### Generation of heatmap
+
+Let's create a basic heatmap using default parameters
+```{r}
+#Heatmap for each samples
+
+#plot
+plot_heatmap(Ps_peakpoc, method = "NMDS", distance = "bray", taxa.label = "Phylum", taxa.order = "Phylum", high = "red", low = "beige", na.value = "beige", max.label = ntaxa(Ps_peakpoc)) + labs(y = "ASVs")
+```
+
+
+## Plotting Chao1 richness estimator and Shannon diversity estimator. 
+
+Chao1 estimator is measured by the number of observed species plus number of singletons divided by two times of number of doubletons. Chao1 estimates the number of species that are represented only by a single indivudal or by two inviduals in that sample based on abundances.
+
+Shannon diversity estimator shows both richness and evenness of species abundance. In other words, if a sample has high shannon diversity index, the sample is thought to be more 'diverse' compared to those samples with lower diversity index 
+
+```{r}
+#plot alpha diversity by samples
+plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon"), color = "season") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
+```
+
+
+```{r}
+# plot alpha diversity by month
+plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon"), x="season", color="month") + labs(x = "Month") + geom_point(size = 4)
+```
+
+## iNEXT rarefaction curve
+
+iNEXT function only allws data frame or contigency table as input, so if samples were grouped or names of columns were changed in phyloseq, it is important to transform a phyloseq oject into a data frame. For my case, column names of the original table are accession numbers from NCBI and the names need to be changed to individual sediment depth of sample extraction with name of sampling site. 
+```{r}
+#Change name of column by individual sediment depths
+
+otu_table_site <- as(otu_table(Ps_peakpoc), "matrix")
+if(!taxa_are_rows(Ps_peakpoc)){otu_table_site <- t(otu_table_site)}
+otu_table_site_df_peakpoc <- as.data.frame(otu_table_site)
+otu_table_site_df_peakpoc
+count_tab_peakpoc
+```
+
+```{r}
+# rarefaction curve for 
+out <- iNEXT(otu_table_site_df, q=0, datatype = "abundance")
+out$DataInfo
+ggiNEXT(out, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample size")
+ggiNEXT(out, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
+ggiNEXT(out, type=3, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Coverage based curve")
+```
+
+There are three types of curves plotted above.
+
+- **Type 1** = Sample- size based R/E curve. This curve plots diversity estimates with confidence intervals as a function of sample size up to double the reference sample size.
+- **Type 2** = sample completeness curve with confidence intervals. This curve plots the sample coverage with respect to sample size for the same range with type 1 plot
+- **Type 3** = Coverage based R/E curve, This curve plots the diversity estimates with confidence intervals as a function of sample coverage up to the maximum coverage obrained from the maximum size described in type 1
+- **knots** = an integer specifying the numver of equally-spaced knots between size 1 andthe endpoint. Since my data set is large and the compational time takes forever, the knots parameter is set to 100 to draw the rarefaction curves. 
+- **conf** = a positive number <1 specifying the level of condence interval. I do not wish to calculate the confidence interval. Therefore, the value is set to NULL. 
+- **se** = if TRUE, it plots confidence intervals. 
+- **theme()** = Changing legend text font size. 
+- **ggtitle()** = add title to plot. 
+-
+
+
+## Hiracheal clustering dendrogram
+```{r}
+#Caluclate distances
+d <- phyloseq::distance(Ps_hellinger, method = "bray", type = "samples")
+# Hierarchical cluster analysis on a set of dissimilarities
+p.hclust <- hclust(d, method = "average")
+plot(p.hclust)
+```
+
+
+

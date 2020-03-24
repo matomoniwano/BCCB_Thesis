@@ -1,0 +1,10 @@
+#!/bin/bash
+mkdir ./fastq/2011-2013/identifier
+
+FILES=$(ls "./fastq/2011-2013")
+
+
+for f in $FILES
+do
+grep -o 'IJB[^ ]*' ./fastq/2011-2013/$f > ./fastq/2011-2013/identifier/$f.txt
+done
