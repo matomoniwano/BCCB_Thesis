@@ -46,7 +46,6 @@ On top of this, I need to add environmental data to the metadata for PeakPOC dat
 As of now, I am stuck in retriving raw sequence files from EEC paper. The sequence file is multiplexed with 33 barcode sequences which some of the barcode sequences are identical, and it makes difficult to distinguish separate files. To solve this, I found this tool called deML which distinguishes two samples that have identical barcode sequences https://github.com/grenaud/deMLhttps://github.com/grenaud/deML
 
 
-<<<<<<< HEAD
 ### 12/03/2020
 
 Today's task was to produce a metadata table for PeakPOC samples using a script given from Magda. Although the scrip was written in a logical flow, it failed to add the desired value from input numbers. On top of this, I attempted to enhance the efficiency of this workload by creating a forloop script to automate the process. However, it also failed to add values in each row in the output file. At the end, I manually inserted the value in each row by hand, which would have been faster if I have known that I would spend almost 3 hours on figuring out the problem of this script. 
@@ -83,13 +82,25 @@ Another problem that I encounter from DADA2 was that the forward reads and the r
 
 Sample selection for each publication
 
-PeakPOC ---- given by Magda.
+PeakPOC ---- 25 samples collected in spring and summer.
 
-EEC ---- Selected 5 samples per year. The original publication mentioned that the bloom was occured usually during the early spring. 
+EEC ---- I filtered 15 samples from 2011-2013 sequenced by 454 pyrosequencing and 15 samples from 2013-2015 sequenced by illumina Miseq. The selection was made based on the relevance to the result discussed in the original paper, including blooms being observed during the early spring and late summer, and late winter. Metadata regarding the samples selected from the EEC dataset are in a file ""
 
-Japan ----- I selected sequence reads from 0m to 200m since chlorophyl concentration was measured within this depth range, and also the shift of diversity was dynamic in the shallower water column, concluded by the original publication
-=======
-
+Japan ----- I selected sequence reads from 0m to 200m since chlorophyl concentration was measured within this depth range, and also the discussion of this paper focused on the community diversity of thw shallower water columns. Metadata regarding this Japanese dataset are contained in a file "SraRunTable_japan_without100m". 100m was excluded due to the large file size and ease computational load for my computer. 
 
 
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+### 22/03/2020
+
+I moved forward to analysis part of this project. All the generated files from the PeakPOC dataset were assigned into a phyloseq object, and the alpha diversity plots and rarefaction curves were generated. I received few feedback from Magda regarding the plots, which are
+
+- Change the name of file to more meaningful and understandable one
+- Rearrange x axis by dates instead of season
+- Data transformation method
+- Try to create an NMDS plot. 
+
+
+
+
+
+
+
