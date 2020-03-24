@@ -46,6 +46,7 @@ On top of this, I need to add environmental data to the metadata for PeakPOC dat
 As of now, I am stuck in retriving raw sequence files from EEC paper. The sequence file is multiplexed with 33 barcode sequences which some of the barcode sequences are identical, and it makes difficult to distinguish separate files. To solve this, I found this tool called deML which distinguishes two samples that have identical barcode sequences https://github.com/grenaud/deMLhttps://github.com/grenaud/deML
 
 
+<<<<<<< HEAD
 ### 12/03/2020
 
 Today's task was to produce a metadata table for PeakPOC samples using a script given from Magda. Although the scrip was written in a logical flow, it failed to add the desired value from input numbers. On top of this, I attempted to enhance the efficiency of this workload by creating a forloop script to automate the process. However, it also failed to add values in each row in the output file. At the end, I manually inserted the value in each row by hand, which would have been faster if I have known that I would spend almost 3 hours on figuring out the problem of this script. 
@@ -87,3 +88,8 @@ PeakPOC ---- given by Magda.
 EEC ---- Selected 5 samples per year. The original publication mentioned that the bloom was occured usually during the early spring. 
 
 Japan ----- I selected sequence reads from 0m to 200m since chlorophyl concentration was measured within this depth range, and also the shift of diversity was dynamic in the shallower water column, concluded by the original publication
+=======
+
+
+
+>>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f

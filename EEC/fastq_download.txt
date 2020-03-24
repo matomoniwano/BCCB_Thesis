@@ -9,7 +9,7 @@ done
 
 for SR in ${SRR[@]}
 do 
-~/jacobs/BCCB_project/sratoolkit.2.10.0-ubuntu64/bin/fastq-dump --split-files "$SR"
+~/jacobs/BCCB_project/sratoolkit.2.10.0-ubuntu64/bin/fastq-dump --split-3 "$SR"
 done
 
 

@@ -222,7 +222,11 @@ for (i in 1:dim(seqtab.nochim)[2]) {
 }
 
 # making and writing out a fast of our final ASV seqs:
+<<<<<<< HEAD
 asv_fasta <- c(rbind(asv_headers, asv_seqs))
+=======
+asv_fasta <- c(rbind(asv_headers, asv_seqs))s
+>>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
 # File name can be changed by modifying "ASVs.fa"
 write(asv_fasta, "ASVs_peakpoc.fa") 
 
@@ -241,7 +245,11 @@ write.table(asv_tab, "ASVs_peakpoc.tsv", sep="\t", quote=F, col.names=NA)
 
 cat ASVs_peakpoc.fa | tr -d " " > ASVs_nospaces_peakpoc.fa
 
+<<<<<<< HEAD
 # and upload this file with a similarity threshold 1 on the  SILVAngs platoform. 
+=======
+# and upload this file with a similarity threshold 1 on the SILVAngs platoform. 
+>>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
 
 ```
 
