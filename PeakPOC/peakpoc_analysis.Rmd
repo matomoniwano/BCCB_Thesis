@@ -110,7 +110,7 @@ Let's create a basic heatmap using default parameters
 #Heatmap for each samples
 
 #plot
-plot_heatmap(Ps_peakpoc, method = "NMDS", distance = "bray", taxa.label = "Phylum", taxa.order = "Phylum", high = "red", low = "beige", na.value = "beige", max.label = ntaxa(Ps_peakpoc)) + labs(y = "ASVs")
+plot_heatmap(Ps_peakpoc, method = "NMDS", distance = "bray", taxa.label = "Class", taxa.order = "Class", high = "red", low = "beige", na.value = "beige", max.label = ntaxa(Ps_peakpoc)) + labs(y = "ASVs")
 ```
 
 
@@ -122,13 +122,14 @@ Shannon diversity estimator shows both richness and evenness of species abundanc
 
 ```{r}
 #plot alpha diversity by samples
-plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon"), color = "season") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
+plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon", "Simpson"), x = "sample_ID", color = "season") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
 ```
 
 
 ```{r}
 # plot alpha diversity by month
-plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon"), x="season", color="month") + labs(x = "Month") + geom_point(size = 4)
+sample_data(Ps_peakpoc)$collection_date_end <- as.factor(as.Date(sample_data(Ps_peakpoc)$collection_date_end, format = "%m/%d/%Y"))
+plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon", "Simpson"), x="collection_date_end", color="season") + labs(x = "Collection date end") + geom_point(size = 4) 
 ```
 
 ## iNEXT rarefaction curve
@@ -146,9 +147,9 @@ count_tab_peakpoc
 
 ```{r}
 # rarefaction curve for 
-out <- iNEXT(otu_table_site_df, q=0, datatype = "abundance")
+out <- iNEXT(otu_table_site_df_peakpoc, q=0, datatype = "abundance")
 out$DataInfo
-ggiNEXT(out, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample size")
+ggiNEXT(out, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs")
 ggiNEXT(out, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
 ggiNEXT(out, type=3, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Coverage based curve")
 ```
@@ -168,12 +169,16 @@ There are three types of curves plotted above.
 
 ## Hiracheal clustering dendrogram
 ```{r}
+
 #Caluclate distances
 d <- phyloseq::distance(Ps_hellinger, method = "bray", type = "samples")
 # Hierarchical cluster analysis on a set of dissimilarities
 p.hclust <- hclust(d, method = "average")
+
 plot(p.hclust)
 ```
+
+
 
 
 
