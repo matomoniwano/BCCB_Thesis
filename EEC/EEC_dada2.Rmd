@@ -48,7 +48,7 @@ library("dada2")
 ### Specifying the path
 
 ```{r}
-<<<<<<< HEAD
+
 # Path for 2011-2013 dataset
 path_EEC_2011_2013 <- "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\EEC\\fastq\\2011-2013_fastq"
 
@@ -57,11 +57,11 @@ path_EEC_2013_2015 <- "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupL
 
 list.files(path_EEC_2011_2013)
 list.files(path_EEC_2013_2015)
-=======
+
 path <- "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_fastq\\Original"
 
 list.files(path)
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 
 The directory for 50 fastq files is specified. 
@@ -69,7 +69,7 @@ The directory for 50 fastq files is specified.
 ### specifying the forward and reverse fastq files
 String manipulation to get matched lists of the forward and reverse fastq files
 ```{r}
-<<<<<<< HEAD
+
 # The format of forward files for 2011 - 2013 is specified
 fnFs_2011_2013 <- sort(list.files(path_EEC_2011_2013, pattern = ".flow.txt.fastq", full.names = TRUE))
 
@@ -80,30 +80,29 @@ fnRs_2013_2015 <- sort(list.files(path_EEC_2013_2015, pattern = "_2.fastq", full
 # Extract sample names for both 2011-2013 and 2013-2015
 sample.names_2011_2013 <- sapply(strsplit(basename(fnFs_2011_2013), ".flow"), `[`, 1)
 sample.names_2013_2015 <- sapply(strsplit(basename(fnFs_2013_2015), "_"), `[`, 1)
-=======
+
 # The format of forward and reverse fastq file name is SAMPLE_NAME_R1_001.fastq and Sample_NAME_R2_00.fastq
 fnFs <- sort(list.files(path, pattern = "_R1_001.fastq", full.names = TRUE))
 fnRs <- sort(list.files(path, pattern = "_R2_001.fastq", full.names = TRUE))
 
 # Extract sample names, assuming files have format: SAMPLENAME_XXX.fastq
 sample.names <- sapply(strsplit(basename(fnFs), "_L"), `[`, 1)
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 
 ### Visualizing the quality of the fastq files before filtering and trimming
 
 ```{r}
-<<<<<<< HEAD
+
 # Plot for 2011-2013
 plotQualityProfile(fnFs_2011_2013[1:4])
 
 #plot for 2013 -2015
 plotQualityProfile(fnFs_2013_2015[1:2])
 plotQualityProfile(fnRs_2013_2015[1:2])
-=======
+
 plotQualityProfile(fnFs[1:5])
 plotQualityProfile(fnRs[1:2])
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
 ```
 
 As shown in the plot graph above, the quality of reads significantly declines at the position of 200 for the forward files and this would be the cutoff point for the truncation. Any point after 200 shows a significant decline in quality score which is not suitable for further processing.   
@@ -114,7 +113,7 @@ For reverse file, truncate position is determined at 150.
 ### -Assigning a variable for fastq file names after filtering and trimming.- 
 
 ```{r}
-<<<<<<< HEAD
+
 # Place filtered files in filtered subdirectory 2011-2013
 filtFs_2011_2013 <- file.path(path_EEC_2011_2013, "filtered", paste0(sample.names_2011_2013, "_F_filt.fastq.gz"))
 names(filtFs_2011_2013) <- sample.names_2011_2013
@@ -126,7 +125,7 @@ names(filtFs_2013_2015) <- sample.names_2013_2015
 # Reverse files
 filtRs_2013_2015 <- file.path(path_EEC_2013_2015, "filtered", paste0(sample.names_2013_2015, "_R_filt.fastq.gz"))
 names(filtRs_2013_2015) <- sample.names_2013_2015
-=======
+
 # Place filtered files in filtered subdirectory
 filtFs <- file.path(path, "filtered", paste0(sample.names, "L001_F_filt.fastq.gz"))
 names(filtFs) <- sample.names
@@ -134,14 +133,14 @@ names(filtFs) <- sample.names
 # Reverse files
 filtRs <- file.path(path, "filtered", paste0(sample.names, "L001_R_filt.fastq.gz"))
 names(filtRs) <- sample.names
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 
 ### - filtering and trimming- 
 discard low quality reads and primers. 
  
 ```{r}
-<<<<<<< HEAD
+
 #2011 - 2013
 out_2011_2013 <- filterAndTrim(
   fwd = fnFs_2011_2013,
@@ -169,7 +168,7 @@ out_2013_2015 <- filterAndTrim(
   trimLeft = c(17, 17),
   maxN=0,
   maxEE=c(1, 3),
-=======
+
 out <- filterAndTrim(
   fwd = fnFs,
   filt = filtFs, 
@@ -179,17 +178,17 @@ out <- filterAndTrim(
   trimLeft = c(17, 18),
   maxN=0,
   maxEE=c(1),
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
   truncQ=2,
   rm.phix=TRUE,
   compress=TRUE,
   multithread=TRUE)
-<<<<<<< HEAD
+
 
 head(out_2013_2015)
 =======
 head(out)
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 
 - **fwd** = The path to the input fastq files. In this case, 'fnFs'.
@@ -208,13 +207,13 @@ If P = 0.5 that means there is a 50% of chance that the base is wrong. Therefore
 ### Quaity check after filtering and trimming
 
 ```{r}
-<<<<<<< HEAD
+
 plotQualityProfile(filtFs_2011_2013[1:2])
 plotQualityProfile(filtFs_2013_2015[1:2])
-=======
+
 plotQualityProfile(filtFs[1:2])
 plotQualityProfile(filtRs[1:2])
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 
 
@@ -227,7 +226,7 @@ Redline shows the error rates expected under the nominal definition of the Q-sco
 Black lines are a good fit fot the observed rates and the errror rates drop with increased quality as expected.
 
 ```{r}  
-<<<<<<< HEAD
+
 #2011-2013
 errF_2011_2013 <- learnErrors(filtFs_2011_2013, multithread=TRUE)
 
@@ -238,11 +237,11 @@ errR_2013_2015 <- learnErrors(filtRs_2013_2015, multithread = TRUE)
 plotErrors(errF_2011_2013, nominalQ=TRUE)
 
 plotErrors(errF_2013_2015, nominalQ=TRUE) 
-=======
+
 errF <- learnErrors(filtFs, multithread=TRUE)
 errR <- learnErrors(filtRs, multithread = TRUE)
 plotErrors(errF, nominalQ=TRUE) 
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 - **multithread** = If TRUE, multithreading is enabled and the number of availble thread is automatically determined. Just like above, this parameter is set to TRUE for faster computation. 
 - **nominalQ** =  If TRUE, plot the expected error rates (red line shown in the graph) if quality scores exactly matched their nominal definition: Q = -10 log10(p_err).
@@ -253,7 +252,7 @@ From the graph above, the black dots follow the trend of black line, and the err
 ### -Dereplication combines all identical sequenceing reads into "unique sequence" witha corresponding "abundance"-
 ```{r}
 # forward files
-<<<<<<< HEAD
+
 derep_forward_2011_2013 <- derepFastq(filtFs_2011_2013, verbose=TRUE)
 derep_forward_2013_2015 <- derepFastq(filtFs_2013_2015, verbose=TRUE)
 
@@ -264,7 +263,7 @@ names(derep_forward_2013_2015) <- sample.names_2013_2015
 # reverse files
 derep_reverse_2013_2015 <- derepFastq(filtRs_2013_2015, verbose = TRUE)
 names(derep_reverse_2013_2015) <- sample.names_2013_2015
-=======
+
 derep_forward <- derepFastq(filtFs, verbose=TRUE)
 # Name the derep-class object by the sample names. 
 names(derep_forward) <- sample.names
@@ -272,7 +271,7 @@ names(derep_forward) <- sample.names
 # reverse files
 derep_reverse <- derepFastq(filtRs, verbose = TRUE)
 names(derep_reverse) <- sample.names
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 
 ```
 - **verbose** = if TRUE, throw standardR messengeson the intermittent and final status of the dereplication. In this case, it is set to TRUE so that the process of dereplication is show in the intermittent. 
@@ -281,7 +280,7 @@ names(derep_reverse) <- sample.names
 This process contains removal of unique sequences that were produced by error. 
 
 ```{r}
-<<<<<<< HEAD
+
 # 2011-2013
 dadaFs_2011_2013 <- dada(derep_forward_2011_2013, err=errF_2011_2013, HOMOPOLYMER_GAP_PENALTY = -1, BAND_SIZE=32, pool = "pseudo")
 # 2013-2015
@@ -289,11 +288,11 @@ dadaFs_2013_2015 <- dada(derep_forward_2013_2015, err=errF_2013_2015, multithrea
 dadaRs_2013_2015 <- dada(derep_reverse_2013_2015, err=errR_2013_2015, multithread=TRUE, pool="pseudo")
 dadaFs_2011_2013[[1]]
 dadaFs_2013_2015[[1]]
-=======
+
 dadaFs <- dada(derep_forward, err=errF, multithread=TRUE, pool="pseudo")
 dadaRs <- dada(derep_reverse, err=errR, multithread=TRUE, pool="pseudo")
 dadaFs[[1]]
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 - **err** = 16xN numeric matrix, or an object coercible by getErrors such as the output of the learnErrors function operated in the previous step. 'errF' is the name of variable that was used to store the result from the previous step.
 - **pool** = If pool = TRUE, the algorithm will pool together all samples prior to sample inference. If pool = FALSE, sample inference is performed on each sample individually. If pool = "pseudo", the algorithm will perform pseudo-pooling between individually processed samples. In other words, when sample A has 1000 copies of of sequence Z while sample B only contains one single copy of sequence Z, sequence Z is likely to be filtered out of sample B although it was a true "singleton" among other sequences in the sample B. This is what is expected to happen when the parameter 'pool' is set to FALSE. On the other hand, when the paramter 'pool' is set to TRUE, it is going to require inconvinient over-workload of computation if the large datasets are processed. For this reason, the parameter "pseudo" option lies somewhere between these two pooling options. Pesudo option contains a two step process i which independent processing is performed twice: First on the raw data alone, and then on the raw data again but informed by priors generated from the first round of processing in the second time. Pseudo-pooling provides a more accurate resolution of ASVs. For this reason, pseudo option is used in this datasets. 
@@ -308,14 +307,14 @@ From the first sample, 132 true sequence variants from the 2967 unique sequence 
 mergers_2013_2015 <- mergePairs(dadaFs_2013_2015, derep_forward_2013_2015, dadaRs_2013_2015, derep_reverse_2013_2015, verbose=TRUE)
 # Inspect the merger data.frame from the first sample
 head(mergers_2013_2015[1:5])
-=======
+
 ### Merging forward and reverse reads together. 
 
 ```{r}
 mergers <- mergePairs(dadaFs, derep_forward, dadaRs, derep_reverse, verbose=TRUE)
 # Inspect the merger data.frame from the first sample
 head(mergers[1:5])
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 
 Now the forward and the reverse files are merged. 
@@ -323,7 +322,7 @@ Now the forward and the reverse files are merged.
 ### - Construction of ASV files- 
 
 ```{r}
-<<<<<<< HEAD
+
 # 2011-2013
 seqtab_2011_2013 <- makeSequenceTable(samples = dadaFs_2011_2013)
 dim(seqtab_2011_2013)
@@ -339,7 +338,7 @@ seqtab_2013_2015 <- makeSequenceTable(samples = dadaFs_2013_2015)
 dim(seqtab_2013_2015)
 # inspect distribution of sequence lengths
 table(nchar(getSequences(seqtab_2013_2015)))
-=======
+
 seqtab <- makeSequenceTable(samples = mergers)
 dim(seqtab)
 # inspect distribution of sequence lengths
@@ -348,12 +347,12 @@ table(nchar(getSequences(seqtab)))
 #remove non-target length sequences from the sequence table
 seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 349:451]
 table(nchar(getSequences(seqtab2)))
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ``` 
 
 ### -Chimera detection- 
 ```{r}
-<<<<<<< HEAD
+
 #2011-2013
 seqtab.nochim_2011_2013 <- removeBimeraDenovo(unqs = seqtab_2011_2013, method = "consensus", multithread = TRUE, verbose = TRUE)
 dim(seqtab.nochim_2011_2013)
@@ -364,11 +363,11 @@ seqtab.nochim_2013_2015 <- removeBimeraDenovo(unqs = seqtab_2013_2015, method = 
 dim(seqtab.nochim_2013_2015)
 sum(seqtab.nochim_2013_2015)/sum(seqtab_2013_2015)
 
-=======
+
 seqtab.nochim <- removeBimeraDenovo(unqs = seqtab2, method = "consensus", multithread = TRUE, verbose = TRUE)
 dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab)
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f
+
 ```
 Chimera is an errous biological sequence derived from two parent sequences during the process of amplification 
 - **unqs** = Object that can be coerced in to one with getUniques. In this case seqtab from the previous step.
@@ -381,7 +380,7 @@ only 2 % of the sequences were chimeras.
 
 ### -Tracking the reads from the pipeline-
 ```{r}
-<<<<<<< HEAD
+
 #2011-2013
 getN <- function(x) sum(getUniques(x))
 track_2011_2013 <- cbind(out_2011_2013, sapply(dadaFs_2011_2013, getN), rowSums(seqtab.nochim_2011_2013))
@@ -449,13 +448,3 @@ write.table(asv_tab_2013_2015, "ASVs_EEC_2013_2015.tsv", sep="\t", quote=F, col.
 ```
 
 
-```
-=======
-getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN),sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
-# if processing a single sample, remove the sapply calls
-colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
-rownames(track) <- sample.names
-head(track)
-```
->>>>>>> 14968be03e58402f2db64cc5a4f8fe6274facb3f

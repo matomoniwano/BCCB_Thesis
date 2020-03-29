@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ls $PWD
+for f in "$FILES"; do
+grep -o 'IJB[^ ]*' $f > ~/jacobs/BCCB_Thesis/EEC/fastq/2011-2013/$f.txt
+done

@@ -99,8 +99,40 @@ I moved forward to analysis part of this project. All the generated files from t
 - Try to create an NMDS plot. 
 
 
+### 25/03/2020
+
+- ANOVA like differential expression (ALDEx) Analysis for Mixed population RNA-Seq
+
+Problem; The single error term accounts for variation due to three sources: sampling, tehnical replication, and persample variability. 
+the main purpose of this work is to show that within-cibdutuib variation cannot reasonably be ignored, especially in Meta-RNA-Seq experinebts, and if such variation is not correcly accomodatedfor then misleading inference will occur. 
+THe data are modeled as compositional or proportional (not relative abundance) because the reads obtained on a high-throughput sequencing run are constrained to the total number of reads available. 
+
+The standard 16S tag-sequencing workflow normalizes abundances between samples by rarefaction or other subsampling methods and usually works with proportions. 
+Datasets can be proportiona;, such as fractions of the whole, percentages, parts per million.
+There have been many warnings regarding the use of standard statistical methods that assume the independence of the underluing observations when examining compositional data
+The m
+
+- Instead of comparing the composition of count values within the sample, the ratio between proportions is compared to have robust data interpretaations.
+- Centered log ratio transformation - the read counts for each ASV are divided by the mean of count of ASVs within the sample, followed by taking the logarithm. 
+CLR has the advantage that there is a one to one transformation of all ASVs. 
+- 2 is used as the base of the logarithm, implying that the differences between ASVs represent fold changes in relative abundance between ASVs 
 
 
 
+### 25/03/2020
 
+LINE 113 
+https://rstudio-pubs-static.s3.amazonaws.com/7433_4537ea5073dc4162950abb715f513469.html
+This page explains how to reorder x-axis from other variables. In this case, I reorder x-axis in a way that the sample names are reordered based on chronological order from the vairable "Collection_Date"
 
+### 27/03/2020
+
+- NMDS was pltoted based on this tutorial https://jkzorz.github.io/2019/06/06/NMDS.html https://rpubs.com/brownjk5/NMDS https://jonlefcheck.net/2012/10/24/nmds-tutorial-in-r/ 
+
+- Reordering items from legend labels has been done through this tutorial https://stackoverflow.com/questions/38619402/how-to-reorder-the-items-in-a-legend
+
+- Changing the shapes for different variables https://www.datanovia.com/en/blog/ggplot-point-shapes-best-tips/
+
+### 28/03/2020
+
+- Merging two tables by rownames. https://statisticsglobe.com/r-merge-data-frames-by-row-names 

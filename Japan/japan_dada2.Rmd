@@ -1,11 +1,10 @@
 ---
-title: "PeakPOC_dada2"
+title: "Japan_dada2"
 output: html_document
 ---
-
 DADA2 processing of data for PeakPOC eukaryotic datasets.
 
-This R-markdown document includes a pipeline for data processing of amplicon data from the PeakPOC datasets
+This R-markdown document includes a pipeline for data processing of raw amplicon reads obtained from the west pacific ocean samples in Japan. 
 
 ### Version of all the programs and tools used n this R markdown. 
 
@@ -13,15 +12,15 @@ This R-markdown document includes a pipeline for data processing of amplicon dat
 **R studio** = 1.2.1335
 **dada2** = 1.12.1
 
-### Copying fastq files from AWI server.
+### Downloading raw sequence data from the database. 
 
 ```{engine='bash'}
 
-scp mniwano@aphros.awi.de:Path/to/the/file.txt /path/to/your/local/directory
+# Download sequnce data from NCBI database
+# This datasets were pair-end fastq files. Therefore, the fastq-dump option '--split-files' was used to separate forward and reverse reads. 
+./fastq_download.txt ./SRR_Acc_list_without100m.txt
 
 ```
-
-A total of 50 fastq files are downloaded from the server onto the local computer. 
 
 ### Loading the neccesary packages
 
@@ -33,66 +32,66 @@ library("dada2")
 ### Specifying the path
 
 ```{r}
-path <- "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_fastq\\Original"
+path_jp <- "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_fastq"
 
-list.files(path)
+list.files(path_jp)
 ```
 
-The directory for 50 fastq files is specified. 
+The output shows the directory containing 32 fastq files from 16 samples. 
 
 ### specifying the forward and reverse fastq files
 String manipulation to get matched lists of the forward and reverse fastq files
 ```{r}
 # The format of forward and reverse fastq file name is SAMPLE_NAME_R1_001.fastq and Sample_NAME_R2_00.fastq
-fnFs <- sort(list.files(path, pattern = "_R1_001.fastq", full.names = TRUE))
-fnRs <- sort(list.files(path, pattern = "_R2_001.fastq", full.names = TRUE))
+fnFs_jp <- sort(list.files(path_jp, pattern = "_1.fastq", full.names = TRUE))
+fnRs_jp <- sort(list.files(path_jp, pattern = "_2.fastq", full.names = TRUE))
 
 # Extract sample names, assuming files have format: SAMPLENAME_XXX.fastq
-sample.names <- sapply(strsplit(basename(fnFs), "_L"), `[`, 1)
+sample.names_jp <- sapply(strsplit(basename(fnFs_jp), "_L"), `[`, 1)
 ```
 
 ### Visualizing the quality of the fastq files before filtering and trimming
 
 ```{r}
-plotQualityProfile(fnFs[1:5])
-plotQualityProfile(fnRs[1:2])
+plotQualityProfile(fnFs_jp[1:5])
+plotQualityProfile(fnRs_jp[1:2])
 ```
 
-As shown in the plot graph above, the quality of reads significantly declines at the position of 200 for the forward files and this would be the cutoff point for the truncation. Any point after 200 shows a significant decline in quality score which is not suitable for further processing.   
+As shown in the plot graph above, the quality of reads significantly declines at the position of 250 for the forward files and this would be the cutoff point for the truncation. Any point after 250 shows a significant decline in quality score which is not suitable for further processing. For the reverse files, it appeared to contain low quality reads in general, but at least length of 200 is desired to have overlapping region to be merged with the forward reads in subsequent steps. This time, 200 is selected to be the cut-off point. 
 
-For reverse file, truncate position is determined at 150.
+
 **fnFs[1:2]** = selecting first two files from the targeted fastq files in the directory
 
 ### -Assigning a variable for fastq file names after filtering and trimming.- 
 
 ```{r}
 # Place filtered files in filtered subdirectory
-filtFs <- file.path(path, "filtered", paste0(sample.names, "L001_F_filt.fastq.gz"))
-names(filtFs) <- sample.names
+filtFs_jp <- file.path(path_jp, "filtered", paste0(sample.names_jp, "L001_F_filt.fastq.gz"))
+names(filtFs_jp) <- sample.names_jp
 
 # Reverse files
-filtRs <- file.path(path, "filtered", paste0(sample.names, "L001_R_filt.fastq.gz"))
-names(filtRs) <- sample.names
+filtRs_jp <- file.path(path_jp, "filtered", paste0(sample.names_jp, "L001_R_filt.fastq.gz"))
+names(filtRs_jp) <- sample.names_jp
 ```
 
 ### - filtering and trimming- 
 discard low quality reads and primers. 
  
 ```{r}
-out <- filterAndTrim(
-  fwd = fnFs,
-  filt = filtFs, 
-  rev = fnRs,
-  filt.rev = filtRs,
+out_jp <- filterAndTrim(
+  fwd = fnFs_jp,
+  filt = filtFs_jp, 
+  rev = fnRs_jp,
+  filt.rev = filtRs_jp,
   truncLen=c(250,200),
-  trimLeft = c(17, 18),
+  trimLeft = c(18, 17),
   maxN=0,
-  maxEE=c(1, 3),
+  maxEE=c(2,4),
   truncQ=2,
   rm.phix=TRUE,
   compress=TRUE,
   multithread=TRUE)
-head(out)
+head(out_jp)
 ```
 
 - **fwd** = The path to the input fastq files. In this case, 'fnFs'.
@@ -102,7 +101,7 @@ head(out)
 - **trimLeft** = The number of nucleotides to remove from the start of each read. If both truncLen and trimLeft are provided, filtered reads will have length truncLen-trimLeft. THis parameter is used when the fastq files still contain primer
 - **maxEE** = After truncation, reads with higher than maxEE "expected errors" will be discarded. The maxEE parameter sets the maximum number of "expected errors" allowed in a read. In other words, we want to throw the read away if the read has is likely to have more than value 'maxEE' erroneous base calls. The EE is defined to be the mean of errors that would be observed in a very large collection of sequences where error rate in each read position is occured independently. Expected error is the sum of error probabilities. For instance, 
 EE = sum(Probability of an error; the base is incorrect if P is the error probability) = sum(10^(-Q/10)). 
-If P = 0.5 that means there is a 50% of chance that the base is wrong. Therefore, large EE number implies that the sum of probabilities of error is large as well, so if maxEE is set to low, then only the reads with small sum of error probabilities can pass through the filter (high quality reads). This time maxEE is set to 1 for the sake of high quality reads filteration and efficiency of computation to process such a large datasets. If filtered reads are too few, then please increase the maxEE value (relaxation of filter). 
+If P = 0.5 that means there is a 50% of chance that the base is wrong. Therefore, large EE number implies that the sum of probabilities of error is large as well, so if maxEE is set to low, then only the reads with small sum of error probabilities can pass through the filter (high quality reads). This time maxEE is set to 2 because the quality of reads is low in general, so MaxEE needs to be set bit higher than usual for most reads to be filtered. If filtered reads are too few, then please increase the maxEE value (relaxation of filter). 
 - **truncQ** = Truncate reads at the first instance of a quality score less than or equal to truncQ. Default is 2 meaning that reads with quality score of 2 (p error = 0.63096) are automatically truncated since there is a 63% chance of the base being wrong. 
 - **rm.phix** = If TRUE, discard reads that match against the phiX genome. Phix bacteriophage genome is typically added to illumina sequencing runs for quality monitoring. 
 - **compress** = If TRUE, the output fastq files are gzipped
@@ -111,12 +110,12 @@ If P = 0.5 that means there is a 50% of chance that the base is wrong. Therefore
 ### Quaity check after filtering and trimming
 
 ```{r}
-plotQualityProfile(filtFs[1:2])
-plotQualityProfile(filtRs[1:2])
+plotQualityProfile(filtFs_jp[1:2])
+plotQualityProfile(filtRs_jp[1:2])
 ```
 
 
-The quality seems to be good! 
+ALthough the mediam of quality score declines toward the end, we will move on since this length is minimum requirement for forward and reverse files to be overlapped.  
 
 ### -learn the error rates -
 Every amplicon dataset has a different set of error rates. 
@@ -125,9 +124,9 @@ Redline shows the error rates expected under the nominal definition of the Q-sco
 Black lines are a good fit fot the observed rates and the errror rates drop with increased quality as expected.
 
 ```{r}  
-errF <- learnErrors(filtFs, multithread=TRUE)
-errR <- learnErrors(filtRs, multithread = TRUE)
-plotErrors(errF, nominalQ=TRUE) 
+errF_jp <- learnErrors(filtFs_jp, multithread=TRUE)
+errR_jp <- learnErrors(filtRs_jp, multithread = TRUE)
+plotErrors(errF_jp, nominalQ=TRUE) 
 ```
 - **multithread** = If TRUE, multithreading is enabled and the number of availble thread is automatically determined. Just like above, this parameter is set to TRUE for faster computation. 
 - **nominalQ** =  If TRUE, plot the expected error rates (red line shown in the graph) if quality scores exactly matched their nominal definition: Q = -10 log10(p_err).
@@ -138,13 +137,13 @@ From the graph above, the black dots follow the trend of black line, and the err
 ### -Dereplication combines all identical sequenceing reads into "unique sequence" witha corresponding "abundance"-
 ```{r}
 # forward files
-derep_forward <- derepFastq(filtFs, verbose=TRUE)
+derep_forward_jp <- derepFastq(filtFs_jp, verbose=TRUE)
 # Name the derep-class object by the sample names. 
-names(derep_forward) <- sample.names
+names(derep_forward_jp) <- sample.names_jp
 
 # reverse files
-derep_reverse <- derepFastq(filtRs, verbose = TRUE)
-names(derep_reverse) <- sample.names
+derep_reverse_jp <- derepFastq(filtRs_jp, verbose = TRUE)
+names(derep_reverse_jp) <- sample.names_jp
 
 ```
 - **verbose** = if TRUE, throw standardR messengeson the intermittent and final status of the dereplication. In this case, it is set to TRUE so that the process of dereplication is show in the intermittent. 
@@ -153,89 +152,84 @@ names(derep_reverse) <- sample.names
 This process contains removal of unique sequences that were produced by error. 
 
 ```{r}
-dadaFs <- dada(derep_forward, err=errF, multithread=TRUE, pool="pseudo")
-dadaRs <- dada(derep_reverse, err=errR, multithread=TRUE, pool="pseudo")
-dadaFs[[1]]
+dadaFs_jp <- dada(derep_forward_jp, err=errF_jp, multithread=TRUE, pool="pseudo")
+dadaRs_jp <- dada(derep_reverse_jp, err=errR_jp, multithread=TRUE, pool="pseudo")
+dadaFs_jp[[1]]
 ```
 - **err** = 16xN numeric matrix, or an object coercible by getErrors such as the output of the learnErrors function operated in the previous step. 'errF' is the name of variable that was used to store the result from the previous step.
-- **pool** = If pool = TRUE, the algorithm will pool together all samples prior to sample inference. If pool = FALSE, sample inference is performed on each sample individually. If pool = "pseudo", the algorithm will perform pseudo-pooling between individually processed samples. In other words, when sample A has 1000 copies of of sequence Z while sample B only contains one single copy of sequence Z, sequence Z is likely to be filtered out of sample B although it was a true "singleton" among other sequences in the sample B. This is what is expected to happen when the parameter 'pool' is set to FALSE. On the other hand, when the paramter 'pool' is set to TRUE, it is going to require inconvinient over-workload of computation if the large datasets are processed. For this reason, the parameter "pseudo" option lies somewhere between these two pooling options. Pesudo option contains a two step process i which independent processing is performed twice: First on the raw data alone, and then on the raw data again but informed by priors generated from the first round of processing in the second time. Pseudo-pooling provides a more accurate resolution of ASVs. For this reason, pseudo option is used in this datasets. 
+- **pool** = If pool = TRUE, the algorithm will pool together all samples prior to sample inference. If pool = FALSE, sample inference is performed on each sample individually. If pool = "pseudo", the algorithm will perform pseudo-pooling between individually processed samples. In other words, when sample A has 1000 copies of of sequence Z while sample B only contains one single copy of sequence Z, sequence Z is likely to be filtered out of sample B although it was a true "singleton" among other sequences in the sample B. This is what is expected to happen when the parameter 'pool' is set to FALSE. On the other hand, when the paramter 'pool' is set to TRUE, it is going to require inconvinient over-workload of computation if the large datasets are processed. For this reason, the parameter "pseudo" option lies somewhere between these two pooling options. Pesudo option contains a two step process i which independent processing is performed twice: First on the raw data alone, andx then on the raw data again but informed by priors generated from the first round of processing in the second time. Pseudo-pooling provides a more accurate resolution of ASVs. For this reason, pseudo option is used in this datasets. 
 
-From the first sample, 132 true sequence variants from the 2967 unique sequence are detected. 
+From the first sample, 1433 true sequence variants from the 38269 unique sequence are detected. 
 
 
 ### Merging forward and reverse reads together. 
 
 ```{r}
-mergers <- mergePairs(dadaFs, derep_forward, dadaRs, derep_reverse, verbose=TRUE)
+mergers_jp <- mergePairs(dadaFs_jp, derep_forward_jp, dadaRs_jp, derep_reverse_jp,minOverlap = 2, verbose=TRUE)
 # Inspect the merger data.frame from the first sample
-head(mergers[1:5])
+head(mergers_jp[1])
 ```
 
-Now the forward and the reverse files are merged. 
+It seemed that a lot of reads are not merged. I will move on with just using forward reads. 
 
 ### - Construction of ASV files- 
 
 ```{r}
-seqtab <- makeSequenceTable(samples = mergers)
-dim(seqtab)
+seqtab_jp <- makeSequenceTable(samples = dadaFs_jp)
+dim(seqtab_jp)
 # inspect distribution of sequence lengths
-table(nchar(getSequences(seqtab)))
+table(nchar(getSequences(seqtab_jp)))
 
-#remove non-target length sequences from the sequence table
-seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 349:451]
-table(nchar(getSequences(seqtab2)))
 ``` 
 
+6384 ASVs have the length of 232. 
 ### -Chimera detection- 
 ```{r}
-seqtab.nochim <- removeBimeraDenovo(unqs = seqtab2, method = "consensus", multithread = TRUE, verbose = TRUE)
-dim(seqtab.nochim)
-sum(seqtab.nochim)/sum(seqtab)
+seqtab.nochim_jp <- removeBimeraDenovo(unqs = seqtab_jp, method = "consensus", multithread = TRUE, verbose = TRUE)
+dim(seqtab.nochim_jp)
+sum(seqtab.nochim_jp)/sum(seqtab_jp)
 ```
 Chimera is an errous biological sequence derived from two parent sequences during the process of amplification 
 - **unqs** = Object that can be coerced in to one with getUniques. In this case seqtab from the previous step.
 - **method** = If "pooled": The samples in the sequence table are all pooled together for bimera identification. If "consensus": The samples in a sequence table are independently checked for bimeras, and a consensus decision on each sequence variant is made. If "per-sample": The samples in a sequence table are independently checked for bimeras, and sequence variants are removed (zeroed-out) from samples independently.
 - **verbose** = print verbose text output if TRUE. 
 
-The table contains 1572 ASVs from 25 samples. 
+The table contains 4717 ASVs from 16 samples. 
 
 only 2 % of the sequences were chimeras. 
 
 ### -Tracking the reads from the pipeline-
 ```{r}
 getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN),sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+track_jp <- cbind(out_jp, sapply(dadaFs_jp, getN),sapply(dadaRs_jp, getN), rowSums(seqtab.nochim_jp))
 # if processing a single sample, remove the sapply calls
-colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
-rownames(track) <- sample.names
-head(track)
+colnames(track_jp) <- c("input", "filtered", "denoisedF", "denoisedR", "nonchim")
+rownames(track_jp) <- sample.names_jp
+head(track_jp)
 ```
 
+Not many reads were filtered through the process
 ### exporting files
 ```{r}
 
 # Giving our seq headers more manageable names
-asv_seqs <- colnames(seqtab.nochim)
-asv_headers <- vector(dim(seqtab.nochim)[2], mode="character")
-for (i in 1:dim(seqtab.nochim)[2]) {
-  asv_headers[i] <- paste(">ASV", i, seq="_")
+asv_seqs_jp <- colnames(seqtab.nochim_jp)
+asv_headers_jp <- vector(dim(seqtab.nochim_jp)[2], mode="character")
+for (i in 1:dim(seqtab.nochim_jp)[2]) {
+  asv_headers_jp[i] <- paste(">ASV", i, seq="_")
 }
 
 # making and writing out a fast of our final ASV seqs:
-
-asv_fasta <- c(rbind(asv_headers, asv_seqs))
-
-asv_fasta <- c(rbind(asv_headers, asv_seqs))s
-
+asv_fasta_jp <- c(rbind(asv_headers_jp, asv_seqs_jp))
 # File name can be changed by modifying "ASVs.fa"
-write(asv_fasta, "ASVs_peakpoc.fa") 
+write(asv_fasta_jp, "ASVs_japan.fa") 
 
 
 # ASV table
-asv_tab <- t(seqtab.nochim)
-row.names(asv_tab) <- sub(">", "", asv_headers)
+asv_tab_jp <- t(seqtab.nochim_jp)
+row.names(asv_tab_jp) <- sub(">", "", asv_headers_jp)
 # File name can be changed by modifying "ASVs_counts.tsv"
-write.table(asv_tab, "ASVs_peakpoc.tsv", sep="\t", quote=F, col.names=NA)
+write.table(asv_tab_jp, "ASVs_japan.tsv", sep="\t", quote=F, col.names=NA)
 
 ```
 
@@ -243,14 +237,9 @@ write.table(asv_tab, "ASVs_peakpoc.tsv", sep="\t", quote=F, col.names=NA)
 ```{engine='bash'}
 # remove space in the sequence IDs 
 
-cat ASVs_peakpoc.fa | tr -d " " > ASVs_nospaces_peakpoc.fa
+cat ASVs_japan.fa | tr -d " " > ASVs_nospaces_japan.fa
 
-
-# and upload this file with a similarity threshold 1 on the  SILVAngs platoform. 
-
+# and upload this file with a similarity threshold 1 on the SILVAngs platoform. 
 
 ```
-
-
-
 

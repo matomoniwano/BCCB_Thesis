@@ -57,20 +57,16 @@ packageVersion("iNEXT")
 ## Reading the exported data from the directory
 
 ```{r}
-#write(asv_fasta, file = "ASVs_GOM.fa")
-#write.table(asv_tab, file = "ASVs_GOM.tsv", sep = "\t", quote = F, col.names = NA)
-#write.table(asv_tax, "ASVs_GOM_Taxa.tsv", sep = "\t", quote = F, col.names = NA)
-# moving on to 
-rm(list=ls())
 #Load ASV table
 count_tab_peakpoc <- read.table("ASVs_peakpoc.tsv", header=T, row.names=1, check.names=F, sep="\t")
 rownames(count_tab_peakpoc) <- gsub(" ", "", rownames(count_tab_peakpoc))
+count_tab_peakpoc <- count_tab_peakpoc[,-20]
 #Load taxonomy table
 tax_tab_peakpoc <- as.matrix(read.table("ASVs_PeakPOC_Taxa.tsv", header=T, row.names=1, check.names=F, sep = "\t"))
 #Load sample matadata file
 sample_info_tab_peakpoc <- read.csv("metadata_EUK_new.csv", header = T, row.names = NULL, check.names = F, sep = ",")
 row.names(sample_info_tab_peakpoc) <- sample_info_tab_peakpoc$sample_name
-sample_info_tab_peakpoc <- sample_info_tab_peakpoc %>% select (-sample_name)
+sample_info_tab_peakpoc <- sample_info_tab_peakpoc[-4,]
 #Check content of the metadata file
 sample_info_tab_peakpoc
 ```
@@ -89,10 +85,13 @@ otu_i_peakpoc <- otu_table(otu_1_peakpoc, taxa_are_rows = T)
 otu_d_peakpoc <- otu_table(otu_2_peakpoc, taxa_are_rows = T)
 rm(otu_1_peakpoc)
 #rm(otu_2)
+
 #read taxonomy table into tax_table class object
 TAX_peakpoc <- tax_table(tax_tab_peakpoc)
+
 #read metadata file into sample_data class object
 samples_peakpoc <- sample_data(sample_info_tab_peakpoc)
+
 #Construct phyloseq object from the component objects above. 
 Ps_peakpoc <- phyloseq(otu_i_peakpoc, TAX_peakpoc, samples_peakpoc)
 Ps_hellinger <- phyloseq(otu_d_peakpoc, TAX_peakpoc, samples_peakpoc)
@@ -171,14 +170,54 @@ There are three types of curves plotted above.
 ```{r}
 
 #Caluclate distances
-d <- phyloseq::distance(Ps_hellinger, method = "bray", type = "samples")
+d_peakpoc <- phyloseq::distance(Ps_hellinger, method = "bray", type = "samples")
 # Hierarchical cluster analysis on a set of dissimilarities
-p.hclust <- hclust(d, method = "average")
+p.hclust_peakpoc <- hclust(d_peakpoc, method = "average")
 
-plot(p.hclust)
+plot(p.hclust_peakpoc)
 ```
 
 
+## NMDS ordination plot
 
+```{r}
+t_count_peakpoc <- t(count_tab_peakpoc)
+NMDS_peakpoc <- decostand(t_count_peakpoc, MARGIN = 2, method = "hellinger" )
+#Transpose the table.
+peakpoc_NMDS <- vegan::metaMDS(NMDS_peakpoc, k=3, distance = "bray")
+stressplot(peakpoc_NMDS)
+```
+
+
+```{r}
+plot(peakpoc_NMDS)
+#extract NMDS scores (x and y coordinates)
+data.scores_peakpoc <- as.data.frame(scores(peakpoc_NMDS))
+
+#add columns to data frame
+data.scores_peakpoc$collection_date_end = sample_info_tab_peakpoc$collection_date_end
+data.scores_peakpoc$season = sample_info_tab_peakpoc$season
+data.scores_peakpoc$month = sample_info_tab_peakpoc$month
+data.scores_peakpoc$Chla_mean_.satellite_HG_region. = sample_info_tab_peakpoc$Chla_mean_.satellite_HG_region.
+  
+
+head(data.scores_peakpoc)
+
+# plotting the NMDS.
+NMDS_new_peakpoc <- ggplot(data.scores_peakpoc, aes(x = NMDS1, y= NMDS2)) + 
+  geom_point(size = 4, aes( shape = season, color = collection_date_end)) + # Choosing mapping for the plot
+  
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+    legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+    legend.key=element_blank()) + 
+    labs(x = "NMDS1", color = "Collection Date", y = "NMDS2", shape = "Depth (m)") # Label formatting
+
+NMDS_new_peakpoc
+```
 
 
