@@ -99,6 +99,10 @@ Ps_hellinger <- phyloseq(otu_d_peakpoc, TAX_peakpoc, samples_peakpoc)
 Ps_peakpoc
 Ps_hellinger
 
+#Change column names to sample names
+
+Ps_peakpoc_merged <- merge_samples(Ps_peakpoc, "sample_ID")
+
 ```
 
 
@@ -137,8 +141,8 @@ iNEXT function only allws data frame or contigency table as input, so if samples
 ```{r}
 #Change name of column by individual sediment depths
 
-otu_table_site <- as(otu_table(Ps_peakpoc), "matrix")
-if(!taxa_are_rows(Ps_peakpoc)){otu_table_site <- t(otu_table_site)}
+otu_table_site <- as(otu_table(Ps_peakpoc_merged), "matrix")
+if(!taxa_are_rows(Ps_peakpoc_merged)){otu_table_site <- t(otu_table_site)}
 otu_table_site_df_peakpoc <- as.data.frame(otu_table_site)
 otu_table_site_df_peakpoc
 count_tab_peakpoc
@@ -165,16 +169,65 @@ There are three types of curves plotted above.
 - **ggtitle()** = add title to plot. 
 -
 
+## Community Compositions
+
+In order to compare eukaryotic community compositions of each sample without being restricted by   
+
+```{r}
+# export a count table with right column names
+count_peakpoc_correct_names <- as(otu_table(Ps_peakpoc_merged), "matrix")
+merge_peakpoc <- merge(t(count_peakpoc_correct_names), tax_tab_peakpoc, by = 0, sort = FALSE)
+
+# Aggregate ASV counts for Phylum
+clr_phylum_peakpoc <-  merge_peakpoc %>% 
+  dplyr::select(2:25, 28) %>% 
+  group_by(Phylum) %>% 
+  summarise_all(funs(sum)) 
+
+# Make taxonomy name as rownames
+row.names(clr_phylum_peakpoc) <- clr_phylum_peakpoc$Phylum
+clr_phylum_peakpoc$Phylum <- NULL
+
+# make samples into rows
+
+clr_phylum_peakpoc_t <- t(clr_phylum_peakpoc)
+
+# if the value in the table is 0, add a small constant 0.1 to make sure we can take the log
+clr_phylum_peakpoc_t[clr_phylum_peakpoc_t == 0] <- 0.1
+
+# CLR transformation on OTU table
+# CLR = taking log from ratio calculated by proportion of each ASVs within a sample
+
+rm(clr_phylum_peakpoc)
+clr_phylum_peakpoc <- t(clr(clr_phylum_peakpoc_t, ifwarn = FALSE))
+rm(clr_phylum_peakpoc_t)
+
+# Repeat same steps for Class, Order, and Family. In this block, I will use source() to reduce redundancy
+
+source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\clr_class_order_family.R")
+```
+
+```{r}
+# plot
+
+source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\plot_community_compositions.R")
+
+```
+
 
 ## Hiracheal clustering dendrogram
 ```{r}
+Ps_sample_name_peakpoc <- merge_samples(Ps_hellinger, "sample_ID")
 
 #Caluclate distances
-d_peakpoc <- phyloseq::distance(Ps_hellinger, method = "bray", type = "samples")
+d_peakpoc <- phyloseq::distance(Ps_sample_name_peakpoc, method = "bray", type = "samples")
 # Hierarchical cluster analysis on a set of dissimilarities
 p.hclust_peakpoc <- hclust(d_peakpoc, method = "average")
+# color scheme
+# color_jp <- c("blue", "orange", "red", "green", "blue", "blue", "blue", "red", "red", "red", "green", "green", "green", "orange", "orange", "orange")
+# labels_colors(p.hclust_jp) <- color_jp 
+plot(p.hclust_peakpoc, hang = -2, cex.lab = 1, cex.axis = 0.8)
 
-plot(p.hclust_peakpoc)
 ```
 
 
@@ -184,7 +237,7 @@ plot(p.hclust_peakpoc)
 t_count_peakpoc <- t(count_tab_peakpoc)
 NMDS_peakpoc <- decostand(t_count_peakpoc, MARGIN = 2, method = "hellinger" )
 #Transpose the table.
-peakpoc_NMDS <- vegan::metaMDS(NMDS_peakpoc, k=3, distance = "bray")
+peakpoc_NMDS <- vegan::metaMDS(NMDS_peakpoc, k=2, distance = "bray")
 stressplot(peakpoc_NMDS)
 ```
 
@@ -195,7 +248,8 @@ plot(peakpoc_NMDS)
 data.scores_peakpoc <- as.data.frame(scores(peakpoc_NMDS))
 
 #add columns to data frame
-data.scores_peakpoc$collection_date_end = sample_info_tab_peakpoc$collection_date_end
+data.scores_peakpoc$collection_date_end = as.Date(strptime(sample_info_tab_peakpoc$collection_date_end, '%m/%d/%Y'))
+data.scores_peakpoc$year = format(data.scores_peakpoc$collection_date_end, "%Y") # This is to add points by year
 data.scores_peakpoc$season = sample_info_tab_peakpoc$season
 data.scores_peakpoc$month = sample_info_tab_peakpoc$month
 data.scores_peakpoc$Chla_mean_.satellite_HG_region. = sample_info_tab_peakpoc$Chla_mean_.satellite_HG_region.
@@ -203,19 +257,19 @@ data.scores_peakpoc$Chla_mean_.satellite_HG_region. = sample_info_tab_peakpoc$Ch
 
 head(data.scores_peakpoc)
 
+
 # plotting the NMDS.
 NMDS_new_peakpoc <- ggplot(data.scores_peakpoc, aes(x = NMDS1, y= NMDS2)) + 
-  geom_point(size = 4, aes( shape = season, color = collection_date_end)) + # Choosing mapping for the plot
-  
+  geom_point(size = 4, aes( shape = season, color = as.factor(year))) + # Choosing mapping for the plot 
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
     axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
     legend.text = element_text(size = 12, face ="bold", colour ="black"), 
-    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14),
     axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
-    legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), 
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
     legend.key=element_blank()) + 
-    labs(x = "NMDS1", color = "Collection Date", y = "NMDS2", shape = "Depth (m)") # Label formatting
+    labs(x = "NMDS1", color = "Collection year", y = "NMDS2", shape = "season") # Label formatting
 
 NMDS_new_peakpoc
 ```

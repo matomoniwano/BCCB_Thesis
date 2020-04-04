@@ -23,8 +23,9 @@ library(stringr)
 # put in the headers myself and also not use hashes or spaces in the header
 # I am skipping the first two lines because I don't need them 
 # Use comment.char = "" because some species have "#" in the name
-taxonomy_japan <- read.table(
-  "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_euk---ssu---otus.csv", 
+# 2011-2013
+taxonomy_eec_2011 <- read.table(
+  "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\EEC\\eec_euk_2011_2013---ssu---otus.csv", 
   header = FALSE, 
   sep = "\t",
   row.names = 3,
@@ -41,7 +42,29 @@ taxonomy_japan <- read.table(
     "silva_reference",
     "classification_NCBI", 
     "classification_SILVA"))
-head(taxonomy_japan)
+head(taxonomy_eec_2011)
+
+# 2013-2015
+
+taxonomy_eec_2013 <- read.table(
+  "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\EEC\\eec_euk_2013_2015---ssu---otus.csv", 
+  header = FALSE, 
+  sep = "\t",
+  row.names = 3,
+  comment.char = "", 
+  skip = 2, 
+  col.names = c(
+    "sample_name", 
+    "cluster_id", 
+    "cluster_acc", 
+    "number_sequences", 
+    "avg_seq_ident", 
+    "similarity", 
+    "sequence", 
+    "silva_reference",
+    "classification_NCBI", 
+    "classification_SILVA"))
+head(taxonomy_eec_2013)
 
 ```
 
@@ -53,7 +76,7 @@ head(taxonomy_japan)
 # I want to get rid of the "silva|...|..|" part so I separate base on the "|" 
 # and then drop these columns
 # Now I separate the taxonomic path into the taxonomic ranks
-taxonomy_japan %>%
+taxonomy_eec_2011 %>%
   subset(
     select = c('sequence', 'classification_SILVA')
   )  %>%  
@@ -68,9 +91,31 @@ taxonomy_japan %>%
     taxonomic_path,
     c('Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus'),
     sep = ";"
-  ) -> taxonomy_japan_sub
+  ) -> taxonomy_eec_2011_sub
 
- write.table(taxonomy_japan_sub, "ASVs_japan_Taxa.tsv", sep="\t", quote=F, col.names=NA)
+ write.table(taxonomy_eec_2011_sub, "ASVs_eec_2011_2013_Taxa.tsv", sep="\t", quote=F, col.names=NA)
+ 
+ 
+ # 2013-2015
+ 
+ taxonomy_eec_2013 %>%
+  subset(
+    select = c('sequence', 'classification_SILVA')
+  )  %>%  
+  tidyr::separate(
+    classification_SILVA,
+    c('silva_code_1', 'silva_code_2', 'silva_code_3', 'taxonomic_path'), 
+    sep = "\\|"
+  )  %>%
+  dplyr::select(-c('silva_code_1', 'silva_code_2', 'silva_code_3')
+  ) %>%
+  tidyr::separate(
+    taxonomic_path,
+    c('Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus'),
+    sep = ";"
+  ) -> taxonomy_eec_2013_sub
+
+ write.table(taxonomy_eec_2013_sub, "ASVs_eec_2013_2015_Taxa.tsv", sep="\t", quote=F, col.names=NA)
 ```
 
 

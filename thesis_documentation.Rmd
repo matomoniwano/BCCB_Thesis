@@ -136,3 +136,8 @@ This page explains how to reorder x-axis from other variables. In this case, I r
 ### 28/03/2020
 
 - Merging two tables by rownames. https://statisticsglobe.com/r-merge-data-frames-by-row-names 
+
+### 30/03/2020
+
+I fixed label names and colors for hieracheal clustering dendrogram plot. Color manipulation was inspired by this tutorialhttp://www.sthda.com/english/wiki/beautiful-dendrogram-visualizations-in-r-5-must-known-methods-unsupervised-machine-learning
+

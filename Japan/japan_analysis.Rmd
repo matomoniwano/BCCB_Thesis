@@ -37,6 +37,7 @@ library("reshape")
 library("dplyr")
 library("iNEXT")
 library("rgr")
+library("dendextend")
 ```
 
 
@@ -53,6 +54,7 @@ packageVersion("viridis")
 packageVersion("reshape")
 packageVersion("iNEXT")
 packageVersion("rgr")
+packageVersion("dendextend")
 ```
 
 
@@ -172,62 +174,58 @@ There are three types of curves plotted above.
 In order to compare eukaryotic community compositions of each sample without being restricted by   
 
 ```{r}
+
+merge_jp <- merge(count_tab_japan, tax_tab_japan, by = 0, sort = FALSE)
+# Aggregate ASV counts for Phylum
+clr_phylum_jp <-  merge_jp %>% 
+  dplyr::select(2:17, 20) %>% 
+  group_by(Phylum) %>% 
+  summarise_all(funs(sum)) 
+
+# Removing first row since the taxonomy name is unknown.
+clr_phylum_jp <- clr_phylum_jp[-1,] 
+
+# Make taxonomy name as rownames
+row.names(clr_phylum_jp) <- clr_phylum_jp$Phylum
+clr_phylum_jp$Phylum <- NULL
+
 # make samples into rows
 
-count_tab_japan_t <- t(count_tab_japan)
+clr_phylum_jp_t <- t(clr_phylum_jp)
 
 # if the value in the table is 0, add a small constant 0.1 to make sure we can take the log
-count_tab_japan_t[count_tab_japan_t == 0] <- 0.1
+clr_phylum_jp_t[clr_phylum_jp_t == 0] <- 0.1
 
 # CLR transformation on OTU table
 # CLR = taking log from ratio calculated by proportion of each ASVs within a sample
 
-clr_japan <- clr(count_tab_japan_t, ifwarn = FALSE)
+rm(clr_phylum_jp)
+clr_phylum_jp <- t(clr(clr_phylum_jp_t, ifwarn = FALSE))
+rm(clr_phylum_jp_t)
 
-# add taxonomy to the columns
-clr_japan_2 <- t(clr_japan)
-clr_merge_jp <- merge(clr_japan_2, tax_tab_japan, by = 0, sort = FALSE)
+# Repeat same steps for Class, Order, and Family. In this block, I will use source() to reduce redundancy
 
-# For Phylum
-
-clr_phylum <- clr_merge_jp %>% dplyr::select(2:17, 20)
-rownames(clr_phylum) <- make.names(clr_phylum[,17], unique = FALSE)
-clr_phylum <- clr_phylum[,-17]
-# For Class
-
-clr_class <- clr_merge_jp %>% dplyr::select(2:17, 21)
-rownames(clr_class) <- make.names(clr_class[,17], unique = TRUE)
-clr_class <- clr_class[,-17]
-
-# For Order
-
-clr_order <- clr_merge_jp %>% dplyr::select(2:17, 22)
-rownames(clr_order) <- make.names(clr_order[,17], unique = TRUE)
-clr_order <- clr_order[,-17]
-
-# For Family
-
-clr_family <- clr_merge_jp %>% dplyr::select(2:17, 23)
-rownames(clr_family) <- make.names(clr_family[,17], unique = TRUE)
-clr_family <- clr_family[,-17]
+source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\clr_class_order_family.R")
 ```
 
 ```{r}
 # plot
 
+source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\plot_community_compositions.R")
 
 ```
 
 ## Hiracheal clustering dendrogram
 ```{r}
 colDate <- get_variable(Ps_hellinger_japan, "Collection_Date")
-
+Ps_sample_name_jp <- merge_samples(Ps_hellinger_japan, "sample_name")
 #Caluclate distances
-d_jp <- phyloseq::distance(Ps_hellinger_japan, method = "bray", type = "samples")
+d_jp <- phyloseq::distance(Ps_sample_name_jp, method = "bray", type = "samples")
 # Hierarchical cluster analysis on a set of dissimilarities
-p.hclust_jp <- hclust(d_jp, method = "average")
-
-plot(p.hclust_jp, tip.color = colDate, hang = -1, cex = 0.6)
+p.hclust_jp <- as.dendrogram(hclust(d_jp, method = "average"))
+color_jp <- c("blue", "orange", "red", "green", "blue", "blue", "blue", "red", "red", "red", "green", "green", "green", "orange", "orange", "orange")
+labels_colors(p.hclust_jp) <- color_jp 
+plot(p.hclust_jp, hang = -1, cex.lab = 4, cex.axis = 0.8)
 
 
 ```
