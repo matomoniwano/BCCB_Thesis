@@ -443,8 +443,42 @@ RDA_EEC +
     size = 5,  
     data = arrowdf_EEC, 
     show.legend = FALSE
-  )
+  ) +
+  geom_point(size = 4) + # Choosing mapping for the plot 
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+    legend.key=element_blank()) + 
+    labs(color = "Date") # Label formatting
 
 ```
 
+## **MDS ordination plot**
 
+```{r}
+
+#Calculate distance
+Ps_MDS_EEC <- ordinate(Ps_EEC_hellinger, "MDS", "bray")
+
+#plot
+
+#by dates
+plot_ordination(Ps_EEC_hellinger, Ps_MDS_EEC, color = "collection_date", shape = "season") +
+  geom_point(size = 4) + # Choosing mapping for the plot 
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+    legend.key=element_blank()) + 
+    labs(color = "Sample Name", shape = "Season") # Label formatting
+
+
+
+```
