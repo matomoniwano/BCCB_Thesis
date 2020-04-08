@@ -139,5 +139,10 @@ This page explains how to reorder x-axis from other variables. In this case, I r
 
 ### 30/03/2020
 
-I fixed label names and colors for hieracheal clustering dendrogram plot. Color manipulation was inspired by this tutorialhttp://www.sthda.com/english/wiki/beautiful-dendrogram-visualizations-in-r-5-must-known-methods-unsupervised-machine-learning
+I fixed label names and colors for hieracheal clustering dendrogram plot. Color manipulation was inspired by this tutorial http://www.sthda.com/english/wiki/beautiful-dendrogram-visualizations-in-r-5-must-known-methods-unsupervised-machine-learning
+
+### 04/08/2020
+
+EEC dataset has two separate ASv tables of samples from year 2011 to 2013 and 2013 to 2015 since these datasets were sequenced separately with two different sequencing techniques (illuina and 454 pyrosequencing). However, in order to analyze the eukaryotic diversity from 2011 to 2015, the ASV tables and its taxonomy table must be merged in a single phyloseq obeject. To do this, separate phyloseq objects were initially created from each dataset with its own sample data and taxonomy table and then merged together using a function merge_phyloseq(). Concerned raised from using this function was that aggregating ASV counts of species found in both datasets without storing separate values in different ASV IDs. For instance, we want to merge ASV counts of "Syndiniales Group I" which appears as ASV_1 in dataset A and ASV_42 in dataset B without having separapte ASVs. This problem was solved by this issue here https://github.com/joey711/phyloseq/issues/574 One can use tax_glom() to merge taxonomy and its ASV counts. 
+
 
