@@ -1,0 +1,450 @@
+---
+title: "EEC_analysis"
+output: html_document
+---
+
+
+## Analysis in R
+
+This R-markdown document contains the analysis part of the EEC datasets
+
+### Version of R and R-studio used in this R markdown. 
+
+**R** = version 3.6.1
+**R studio** = version 1.2.1335
+
+### setting the working directory
+
+```{r}
+setwd("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\EEC")
+list.files()
+```
+
+### loading the packages
+
+```{r}
+
+# install.packages("phyloseq")
+# install.packages("vegan")s
+#install.packages("DESeq2")
+# install.packages("ggplot2")
+# install.packages("dendextend")
+# install.packages("tidyr")
+# install.packages("viridis")
+# install.packages("reshape")
+# install.packages("iNEXT")
+# install.packages("dendextend")
+# install.packages("rgr")
+
+library("phyloseq")
+library("vegan")
+library("DESeq2")
+library("ggplot2")
+#library("dendextend")
+library("tidyr")
+library("viridis")
+library("reshape")
+library("dplyr")
+library("iNEXT")
+library("rgr")
+library("dendextend")
+```
+
+
+## Checking the package version 
+
+```{r}
+packageVersion("phyloseq")
+packageVersion("vegan")
+packageVersion("DESeq2")
+packageVersion("ggplot2") 
+#packageVersion("dendextend")
+packageVersion("tidyr")
+packageVersion("viridis")
+packageVersion("reshape")
+packageVersion("iNEXT")
+packageVersion("rgr")
+packageVersion("dendextend")
+```
+
+
+## Reading the exported data from the directory
+I create two phyloseq object for 2011-2013 set and 2013-2015 set and merge them together.
+```{r}
+#=====================================================================
+# 2011- 2013
+#====================================================================
+# Load ASV table
+
+count_tab_eec_2011_2013 <- read.table("ASVs_EEC_2011_2013.tsv", header=T, row.names=1, check.names=F, sep="\t")
+count_tab_eec_2011_2013 <- count_tab_eec_2011_2013[, c(-5, -14)] # Removing two samples
+
+# Changin the format of rownames in ASV table from "ASV XXX _" to "ASVXXX_"
+rownames(count_tab_eec_2011_2013) <- gsub(" ", "", rownames(count_tab_eec_2011_2013)) # Chage the format of rownames from "ASV 1 _" to "ASV1_". 
+
+#Load taxonomy table
+tax_tab_eec_2011_2013 <- as.matrix(read.table("ASVs_eec_2011_2013_Taxa.tsv", header=T, row.names=1, check.names=F, sep = "\t"))
+
+#Load sample matadata file
+sample_info_tab_2011 <- read.csv("EEC_metadata_2011.txt", header = T, row.names = NULL, check.names = F, sep = "\t")
+row.names(sample_info_tab_2011) <- sample_info_tab_2011$Run # Assign rownames from one of the column "Run"
+sample_info_tab_2011 <- sample_info_tab_2011[,-1] # Remove the column since it is assigned to the rownames
+
+#Check content of the metadata file
+sample_info_tab_2011
+
+#====================================================================
+# 2013 - 2015
+#====================================================================
+#Load ASV table
+count_tab_eec_2013_2015 <- read.table("ASVs_EEC_2013_2015.tsv", header=T, row.names=1, check.names=F, sep="\t")
+
+# Changin the format of rownames in ASV table from "ASV XXX _" to "ASVXXX_"
+rownames(count_tab_eec_2013_2015) <- gsub(" ", "", rownames(count_tab_eec_2013_2015))
+
+#Load taxonomy table
+tax_tab_eec_2013_2015 <- as.matrix(read.table("ASVs_eec_2013_2015_Taxa.tsv", header=T, row.names=1, check.names=F, sep = "\t"))
+
+#Load sample matadata file
+sample_info_tab_2013 <- read.csv("EEC_metadata_2013.txt", header = T, row.names = NULL, check.names = F, sep = "\t")
+row.names(sample_info_tab_2013) <- sample_info_tab_2013$Run
+sample_info_tab_2013 <- sample_info_tab_2013[,-1]
+
+#Check content of the metadata file
+sample_info_tab_2013
+
+```
+
+- **sep** = a string used to separate columns. using sep = "\t" gives tab deliminated output
+- **quote** = a logical value or a numeric vector. If TRUE, any character or factor coluns will be surrounded by double quotes. If FALSE, nothing is quoted/
+- **col.names** = either a logical value indicating whether the column names of x are to be written along with x, or a character vector of column names to be written. 
+- **row.names** = a vector of row names. Setting it to 1 means the name of samples/ASV number is listed in the first column of the table
+- **header** = TRUE if a table contains header for columns. 
+
+
+## Assigning contigency tables and sample metadata into phyloseq object
+```{r}
+
+
+#read ASV table into OTU_table class object
+otu_1_2011 <- as.matrix(count_tab_eec_2011_2013)
+otu_1_2013 <- as.matrix(count_tab_eec_2013_2015)
+
+# transpose table for hellinger transformation
+otu_2011 <- t(otu_1_2011)
+otu_2_2011 <- decostand(otu_1_2011, MARGIN = 2, method = "hellinger" )
+otu_i_2011 <- otu_table(otu_1_2011, taxa_are_rows = T)
+otu_d_2011 <- otu_table(otu_2_2011, taxa_are_rows = T)
+rm(otu_1_2011)
+rm(otu_2_2011)
+
+otu_2013 <- t(otu_1_2013)
+otu_2_2013 <- decostand(otu_1_2013, MARGIN = 2, method = "hellinger" )
+otu_i_2013 <- otu_table(otu_1_2013, taxa_are_rows = T)
+otu_d_2013 <- otu_table(otu_2_2013, taxa_are_rows = T)
+rm(otu_1_2013)
+rm(otu_2_2013)
+
+#read taxonomy table into tax_table class object
+TAX_2011 <- tax_table(tax_tab_eec_2011_2013)
+TAX_2013 <- tax_table(tax_tab_eec_2013_2015)
+
+#read metadata file into sample_data class object
+samples_2011 <- sample_data(sample_info_tab_2011)
+samples_2013 <- sample_data(sample_info_tab_2013)
+
+#Construct phyloseq object from the component objects above. 
+Ps_2011 <- phyloseq(otu_i_2011, TAX_2011, samples_2011)
+Ps_hellinger_2011 <- phyloseq(otu_d_2011, TAX_2011, samples_2011)
+
+Ps_2013 <- phyloseq(otu_i_2013, TAX_2013, samples_2013)
+Ps_hellinger_2013 <- phyloseq(otu_d_2013, TAX_2013, samples_2013)
+
+#Check content of the object
+Ps_2011
+Ps_hellinger_2011
+Ps_2013
+Ps_hellinger_2013
+
+```
+
+## Merging two phyloseq objects
+
+```{r}
+# Merge two phyloseq objects
+Ps_combined <- merge_phyloseq(Ps_2011, Ps_2013)
+Ps_EEC <- tax_glom(Ps_combined, "Genus")
+rm(Ps_combined)
+
+# Same for hellinger transformed objects
+Ps_combined <- merge_phyloseq(Ps_hellinger_2011, Ps_hellinger_2013)
+Ps_EEC_hellinger <- tax_glom(Ps_combined, "Genus")
+rm(Ps_combined)
+```
+
+- **merge_phyloseq()** = Takes a comma-separated list of phyloseq objects as arguments, and returns the most-comprehensive single phyloseq object possible.
+
+
+## Plotting Chao1 richness estimator and Shannon diversity estimator. 
+
+Chao1 estimator is measured by the number of observed species plus number of singletons divided by two times of number of doubletons. Chao1 estimates the number of species that are represented only by a single indivudal or by two inviduals in that sample based on abundances.
+
+Shannon diversity estimator shows both richness and evenness of species abundance. In other words, if a sample has high shannon diversity index, the sample is thought to be more 'diverse' compared to those samples with lower diversity index 
+
+Simpson's diversity index is a measure of diversity which takes into account the number of species present, as well as the relative abundance of each species. 
+
+```{r}
+#plot alpha diversity by samples
+
+test <-Ps_EEC
+
+#Defining date format 
+
+date_EEC <- as.Date(sample_data(Ps_EEC)$collection_date, format = '%m/%d/%Y')
+sample_data(test)$collection_date  <- as.factor(date_EEC)
+sample_data(test)$year <- format(date_EEC, "%Y") # This is to add points by year
+                                               
+# Plot
+
+plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection_date", color = "year") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
+```
+
+
+```{r}
+#plot alpha diversity by samples colored by season
+plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection_date", color = "season") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
+```
+
+
+
+
+## iNEXT rarefaction curve
+
+iNEXT function only allws data frame or contigency table as input, so if samples were grouped or names of columns were changed in phyloseq, it is important to transform a phyloseq oject into a data frame. For my case, column names of the original table are accession numbers from NCBI and the names need to be changed to individual sediment depth of sample extraction with name of sampling site. 
+```{r}
+
+#Change name of column by sample names
+sample_data(Ps_EEC)$collection_date <- as.Date(sample_data(Ps_EEC)$collection_date, format = '%m/%d/%Y')
+PS_EEC_sample_name <- merge_samples(Ps_EEC, "collection_date")
+
+otu_table_site_EEC <- as(otu_table(PS_EEC_sample_name), "matrix")
+if(!taxa_are_rows(PS_EEC_sample_name)){otu_table_site_EEC <- t(otu_table_site_EEC)}
+otu_table_site_df_EEC <- as.data.frame(otu_table_site_EEC)
+
+# Check the content
+otu_table_site_df_EEC
+
+```
+
+```{r}
+# rarefaction curve using iNEXT
+out_EEC <- iNEXT(otu_table_site_df_EEC, q=0, datatype = "abundance")
+out_EEC$DataInfo
+ggiNEXT(out_EEC, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs")
+ggiNEXT(out_EEC, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
+ggiNEXT(out_EEC, type=3, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Coverage based curve")
+```
+
+
+- **Type 1** = Sample- size based R/E curve. This curve plots diversity estimates with confidence intervals as a function of sample size up to double the reference sample size.
+- **Type 2** = sample completeness curve with confidence intervals. This curve plots the sample coverage with respect to sample size for the same range with type 1 plot
+- **Type 3** = Coverage based R/E curve, This curve plots the diversity estimates with confidence intervals as a function of sample coverage up to the maximum coverage obrained from the maximum size described in type 1
+- **knots** = an integer specifying the numver of equally-spaced knots between size 1 andthe endpoint. Since my data set is large and the compational time takes forever, the knots parameter is set to 100 to draw the rarefaction curves. 
+- **conf** = a positive number <1 specifying the level of condence interval. I do not wish to calculate the confidence interval. Therefore, the value is set to NULL. 
+- **se** = if TRUE, it plots confidence intervals. 
+- **theme()** = Changing legend text font size. 
+- **ggtitle()** = add title to plot. 
+-
+
+## Community Compositions
+
+Ratio transformations capture the relationships between each ASVs in the dataset and these ratios are the same whether the data are counts or proportions. Taking the logarithm of these ratios makes the data symmetric and linearly related and places the data in a log ratio coordinate space. 
+
+```{r}
+# export the count table with right column names
+count_EEC_correct_names <- as(otu_table(PS_EEC_sample_name), "matrix")  # extract a count table from the phyloseq object
+
+# export the taxonomy table from the phyloseq object
+tax_EEC <- as(tax_table(PS_EEC_sample_name), "matrix")
+
+# Merge count table and taxa table
+merge_EEC <- merge(t(count_EEC_correct_names), tax_EEC, by = 0, sort = FALSE)
+
+# Aggregate ASV counts for Phylum
+clr_phylum_EEC <-  merge_EEC %>% 
+  dplyr::select(2:29, 32) %>%  # select() extracts columns from input number.  
+  group_by(Phylum) %>% # aggreagate counts by phylum
+  summarise_all(funs(sum)) 
+
+# Make taxonomy name as rownames
+row.names(clr_phylum_EEC) <- clr_phylum_EEC$Phylum
+clr_phylum_EEC$Phylum <- NULL
+
+# make samples into rows
+
+clr_phylum_EEC_t <- t(clr_phylum_EEC)
+
+# if the value in the table is 0, add a small constant 0.1 to make sure we can take the log
+clr_phylum_EEC_t[clr_phylum_EEC_t == 0] <- 0.1
+
+# CLR transformation on OTU table
+# CLR = taking log from ratio calculated by proportion of each ASVs within a sample
+
+rm(clr_phylum_EEC)
+clr_phylum_EEC <- t(clr(clr_phylum_EEC_t, ifwarn = FALSE))
+rm(clr_phylum_EEC_t)
+
+# Repeat same steps for Class, Order, and Family. In this block, I will use source() to reduce redundancy
+
+source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\EEC\\clr_class_order_family.R")
+```
+- **by** = specifications of the columns used for merging. By default the data frames are merged on the columns with names they both have. In this case, rownames from the two tables need to match, so **0** is used in this parameter.
+- **sort** = logical. Should the result be sorted on the by columns? 
+- **ifwarn** = by default ifwarn = TRUE which generates a reminder/warning that when carrying out a centred log-ratio transformation all the data/parts must be in the same measurement units. The message can be suppressed by setting ifwarn = FALSE.
+
+Now we can plot. 
+
+```{r}
+# plot
+
+source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\EEC\\plot_community_compositions.R")
+
+```
+
+
+## Hiracheal clustering dendrogram
+```{r}
+
+colDate <- get_variable(Ps_EEC_hellinger, "collection_date")
+Ps_hellinger_EEC <- merge_samples(Ps_EEC_hellinger, "collection_date")
+
+#Caluclate distances
+
+d_EEC <- phyloseq::distance(Ps_hellinger_EEC, method = "bray", type = "samples")
+
+# Hierarchical cluster analysis on a set of dissimilarities
+p.hclust_EEC <- as.dendrogram(hclust(d_EEC, method = "average"))
+
+# color scheme
+color_EEC <- c("blue", "orange", "blue", "green", "blue", "orange", "orange", "red", "green", "purple", "purple", "green", "purple", "purple", "green", "green", "red", "red", "green", "purple", "red", "red", "green", "orange", "blue", "blue", "green", "orange")
+labels_colors(p.hclust_EEC) <- color_EEC 
+
+# plot
+plot(p.hclust_EEC, hang = -1, cex.lab = 4, cex.axis = 0.8)
+
+
+```
+
+
+## NMDS ordination plot
+
+NMDS is a way to condese information from mulidementional data into a 2D representation or ordination. The closer two points are, the more similar the corresponding samples are with respect to the variables that went into making the NMDS plot. 
+
+```{r}
+
+
+NMDS_EEC <- decostand(count_EEC_correct_names, MARGIN = 2, method = "hellinger" )
+
+#Transpose the table.
+EEC_NMDS <- vegan::metaMDS(NMDS_EEC, k=2, distance = "bray")
+rm(NMDS_EEC)
+
+# stress plot
+stressplot(EEC_NMDS)
+```
+
+
+- **MARGIN** = Margin, if default is not accept. "1" = rows, and "2" = columns of x
+- **k** = Number of dimensions. The number od points n should be n>2*k+1 and prefeably higher in non-metric MDS
+- **distance** = Dissimilarity index used in vegdist. We will use bray curtis dissimilarity index. 
+
+OKay now moving on to plotting the points
+
+```{r}
+plot(EEC_NMDS)
+
+#extract NMDS scores (x and y coordinates)
+data.scores_EEC <- as.data.frame(scores(EEC_NMDS))
+
+#add columns to data frame
+data.scores_EEC$collection_date = sample_data(Ps_EEC)$collection_date
+data.scores_EEC$year = format(date_EEC, "%Y") # This is to add points by year
+data.scores_EEC$season = sample_data(Ps_EEC)$season
+
+head(data.scores_EEC)
+
+# plotting the NMDS.
+NMDS_new_EEC <- ggplot(data.scores_EEC, aes(x = NMDS1, y= NMDS2)) + 
+  geom_point(size = 7, aes( shape = season, color = as.factor(year))) + # Choosing mapping for the plot
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+    legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+    legend.key=element_blank()) + 
+    labs(x = "NMDS1", color = "Collection Date", y = "NMDS2", shape = "season") # Label formatting
+
+NMDS_new_EEC
+```
+
+
+
+## Redundancy analysis 
+
+
+Redundancy analysis (RDA) is a method to extract and summarise the variation in a set of response variables that can be explained by a set of explanatory 
+variables. More accurately, RDA is a direct gradient analysis technique which summarises linear relationships between components of response variables that are 
+"redundant" with (i.e. "explained" by) a set of explanatory variables.
+
+```{r}
+
+sample_data(Ps_EEC_hellinger)$collection_date <- as.factor(date_EEC)
+
+# ordinate
+rda_EEC <- ordinate(Ps_EEC_hellinger, method = "RDA", distance = "bray", formula = ~ Temperature + Salinity + Oxygen + POC + pH + PO4 + SiOH4 + PON + CHLa)
+
+# Plot
+
+RDA_EEC <- plot_ordination(Ps_EEC_hellinger, rda_EEC, type = "sample", color="collection_date", shape = "season")
+
+RDA_EEC
+
+
+
+# Now add the environmental variables as arrows
+arrowmat_EEC = vegan::scores(rda_EEC, display = "bp")
+
+# Add labels, make a data.frame
+arrowdf_EEC <- data.frame(labels = rownames(arrowmat_EEC), arrowmat_EEC)
+
+# Define the arrow aesthetic mapping
+arrow_map = aes(xend = RDA1, yend = RDA2, x = 0, y = 0, shape = NULL, color = NULL, label = labels)
+arrowhead = arrow(length = unit(0.05, "npc"))
+label_map <- aes(x = 1.2 * RDA1, 
+    y = 1.2 * RDA2, 
+    shape = NULL, 
+    color = NULL, 
+    label = labels)
+
+# Make a new graphic
+RDA_EEC + 
+  geom_point(size = 5) + 
+  geom_segment(
+    mapping = arrow_map, 
+    size = .5, 
+    data = arrowdf_EEC, 
+    color = "gray", 
+    arrow = arrowhead
+  ) + 
+  geom_text(
+    mapping = label_map, 
+    size = 5,  
+    data = arrowdf_EEC, 
+    show.legend = FALSE
+  )
+
+```
+
+

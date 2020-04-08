@@ -1,17 +1,17 @@
-run_name	Collection_Date	DATASTORE region	Depth	lat_lon	sample_name
-DRR180256_1.fastq	11/6/2010	"s3.us-east-1,ncbi.public,gs.US"	0m	30 N 145 E	F34_Nov2010_0m
-DRR180257_1.fastq	11/6/2010	"ncbi.public,s3.us-east-1,gs.US"	10m	30 N 145 E	F35_Nov2010_10m
-DRR180258_1.fastq	11/6/2010	"ncbi.public,gs.US,s3.us-east-1"	50m	30 N 145 E	F36_Nov2010_50m
-DRR180261_1.fastq	11/6/2010	"ncbi.public,s3.us-east-1,gs.US"	200m	30 N 145 E	F39_Nov2010_200m
-DRR180267_1.fastq	2/13/2011	"ncbi.public,s3.us-east-1,gs.US"	0m	30 N 145 E	F56_Feb2011_0m
-DRR180268_1.fastq	2/13/2011	"s3.us-east-1,ncbi.public,gs.US"	10m	30 N 145 E	F57_Feb2011_10m
-DRR180269_1.fastq	2/13/2011	"ncbi.public,s3.us-east-1,gs.US"	50m	30 N 145 E	F58_Feb2011_50m
-DRR180272_1.fastq	2/13/2011	"ncbi.public,s3.us-east-1,gs.US"	200m	30 N 145 E	F61_Feb2011_200m
-DRR180278_1.fastq	4/29/2011	"ncbi.public,s3.us-east-1,gs.US"	0m	30 N 145 E	F78_Apr2011_0m
-DRR180279_1.fastq	4/29/2011	"ncbi.public,gs.US,s3.us-east-1"	10m	30 N 145 E	F79_Apr2011_10m
-DRR180280_1.fastq	4/29/2011	"s3.us-east-1,ncbi.public,gs.US"	50m	30 N 145 E	F80_Apr2011_50m
-DRR180283_1.fastq	4/29/2011	"ncbi.public,s3.us-east-1,gs.US"	200m	30 N 145 E	F83_Apr2011_200m
-DRR180288_1.fastq	7/24/2011	"s3.us-east-1,ncbi.public,gs.US"	0m	30 N 145 E	F100_Jul2011_0m
-DRR180289_1.fastq	7/24/2011	"ncbi.public,gs.US,s3.us-east-1"	5m	30 N 145 E	F101_Jul2011_5m
-DRR180290_1.fastq	7/24/2011	"ncbi.public,s3.us-east-1,gs.US"	50m	30 N 145 E	F102_Jul2011_50m
-DRR180293_1.fastq	7/24/2011	"ncbi.public,gs.US,s3.us-east-1"	200m	30 N 145 E	F105_Jul2011_200m
+run_name	Collection_Date	DATASTORE region	Depth	lat_lon	sample_name	temperature	Salinity	Oxygen	Nitrate	CHL_a
+DRR180256_1.fastq	11/6/2010	"s3.us-east-1,ncbi.public,gs.US"	0m	30 N 145 E	F34_Nov2010_0m	23.7	34.65	187	0.5	0.13
+DRR180257_1.fastq	11/6/2010	"ncbi.public,s3.us-east-1,gs.US"	10m	30 N 145 E	F35_Nov2010_10m	24.58	34.62	190	0.5	0.15
+DRR180258_1.fastq	11/6/2010	"ncbi.public,gs.US,s3.us-east-1"	50m	30 N 145 E	F36_Nov2010_50m	21.89	34.69	224	0.5	0.17
+DRR180261_1.fastq	11/6/2010	"ncbi.public,s3.us-east-1,gs.US"	200m	30 N 145 E	F39_Nov2010_200m	17.2	34.71	201	6	0
+DRR180267_1.fastq	2/13/2011	"ncbi.public,s3.us-east-1,gs.US"	0m	30 N 145 E	F56_Feb2011_0m	15.86	34.77	221	0.5	0.79
+DRR180268_1.fastq	2/13/2011	"s3.us-east-1,ncbi.public,gs.US"	10m	30 N 145 E	F57_Feb2011_10m	16.47	34.7	220	0.7	0.75
+DRR180269_1.fastq	2/13/2011	"ncbi.public,s3.us-east-1,gs.US"	50m	30 N 145 E	F58_Feb2011_50m	15.88	34.69	225	1	0.72
+DRR180272_1.fastq	2/13/2011	"ncbi.public,s3.us-east-1,gs.US"	200m	30 N 145 E	F61_Feb2011_200m	15.71	34.71	208	5	0.1
+DRR180278_1.fastq	4/29/2011	"ncbi.public,s3.us-east-1,gs.US"	0m	30 N 145 E	F78_Apr2011_0m	17.67	34.79	239	0.5	0.43
+DRR180279_1.fastq	4/29/2011	"ncbi.public,gs.US,s3.us-east-1"	10m	30 N 145 E	F79_Apr2011_10m	17.92	34.78	237	0.5	0.55
+DRR180280_1.fastq	4/29/2011	"s3.us-east-1,ncbi.public,gs.US"	50m	30 N 145 E	F80_Apr2011_50m	17.43	34.8	227	0.5	0.57
+DRR180283_1.fastq	4/29/2011	"ncbi.public,s3.us-east-1,gs.US"	200m	30 N 145 E	F83_Apr2011_200m	16.7	34.72	220	3	0.9
+DRR180288_1.fastq	7/24/2011	"s3.us-east-1,ncbi.public,gs.US"	0m	30 N 145 E	F100_Jul2011_0m	25.32	34.72	184	0.5	0.1
+DRR180289_1.fastq	7/24/2011	"ncbi.public,gs.US,s3.us-east-1"	5m	30 N 145 E	F101_Jul2011_5m	25.12	34.71	186	0.5	0.13
+DRR180290_1.fastq	7/24/2011	"ncbi.public,s3.us-east-1,gs.US"	50m	30 N 145 E	F102_Jul2011_50m	19.27	34.81	220	0.4	0.15
+DRR180293_1.fastq	7/24/2011	"ncbi.public,gs.US,s3.us-east-1"	200m	30 N 145 E	F105_Jul2011_200m	16.34	34.73	220	4	0.13
