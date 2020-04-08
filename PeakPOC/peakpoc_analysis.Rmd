@@ -316,7 +316,7 @@ NMDS_new_peakpoc <- ggplot(data.scores_peakpoc, aes(x = NMDS1, y= NMDS2)) +
     legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
-    labs(x = "NMDS1", color = "Collection year", y = "NMDS2", shape = "season") # Label formatting
+    labs(color = "Collection year", shape = "season") # Label formatting
 
 NMDS_new_peakpoc
 ```
@@ -375,9 +375,41 @@ RDA_peakpoc +
     size = 5,  
     data = arrowdf_peakpoc, 
     show.legend = FALSE
-  )
+  ) +
+   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+    legend.key=element_blank()) + 
+    labs( color = "sample name",  shape = "season") # Label formatting
 
 ```
 
+## **MDS ordination plot**
 
+```{r}
 
+#Calculate distance
+Ps_MDS_peakpoc <- ordinate(Ps_hellinger, "MDS", "bray")
+
+#plot
+
+#by sample sites
+MDS_peakpoc <- plot_ordination(Ps_hellinger, Ps_MDS_peakpoc, color = "sample_ID", shape = "season") +
+  geom_point(size = 4) + # Choosing mapping for the plot 
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+    legend.key=element_blank()) + 
+    labs(color = "Sample Name", shape = "Season") # Label formatting
+
+MDS_peakpoc
+
+```
