@@ -9,9 +9,9 @@ This R-markdown document includes a pipeline for data processing of amplicon dat
 
 ### Version of all the programs and tools used n this R markdown. 
 
-**R** = 3.6.1
-**R studio** = 1.2.1335
-**dada2** = 1.12.1
+- **R** = 3.6.1
+- **R studio** = 1.2.1335
+- **dada2** = 1.12.1
 
 ### Copying fastq files from AWI server.
 

@@ -206,13 +206,23 @@ sample_data(test)$year <- format(date_EEC, "%Y") # This is to add points by year
                                                
 # Plot
 
-plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection_date", color = "year") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
+plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection_date", color = "year") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8)) +
+    theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12, face = "bold"),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  ) +
+  labs(color = "Collection Year", x = "Collection Date")
 ```
 
 
 ```{r}
 #plot alpha diversity by samples colored by season
-plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection_date", color = "season") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
+plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection_date", color = "season") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8)) +
+ theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12, face = "bold"),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  ) +
+  labs(color = "Season", x = "Collection Date")
 ```
 
 
@@ -240,7 +250,14 @@ otu_table_site_df_EEC
 # rarefaction curve using iNEXT
 out_EEC <- iNEXT(otu_table_site_df_EEC, q=0, datatype = "abundance")
 out_EEC$DataInfo
-ggiNEXT(out_EEC, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs")
+ggiNEXT(out_EEC, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs") +
+ theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12, face = "bold"),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  ) +
+  guides(color=guide_legend(title="Guides", ncol=length(levels(factor(out_EEC$DataInfo$site)))))
+
+
 ggiNEXT(out_EEC, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
 ggiNEXT(out_EEC, type=3, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Coverage based curve")
 ```
@@ -276,6 +293,11 @@ clr_phylum_EEC <-  merge_EEC %>%
   group_by(Phylum) %>% # aggreagate counts by phylum
   summarise_all(funs(sum)) 
 
+# Checking sum of the counts before and after the aggregation. 
+
+colSums(clr_phylum_EEC[,-1]) # sum of aggregated table
+colSums(t(count_EEC_correct_names)) # sum of original table
+
 # Make taxonomy name as rownames
 row.names(clr_phylum_EEC) <- clr_phylum_EEC$Phylum
 clr_phylum_EEC$Phylum <- NULL
@@ -302,6 +324,10 @@ source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntuon
 - **sort** = logical. Should the result be sorted on the by columns? 
 - **ifwarn** = by default ifwarn = TRUE which generates a reminder/warning that when carrying out a centred log-ratio transformation all the data/parts must be in the same measurement units. The message can be suppressed by setting ifwarn = FALSE.
 
+
+**Cross checking**
+When plotting comunity compositions by each taxa rank (phylum, class, order, and family), the counts that corespond to identical taxonomy must be aggregated in order to avoid redundancy in the dataset. The original data table is filtered into each taxa rank with aggregated ASV counts and the data is stored in a object. Correct taxonomy names and its number of counts are manually cross checked by looking at first few rows in the object and the original data table. 
+
 Now we can plot. 
 
 ```{r}
@@ -326,11 +352,11 @@ d_EEC <- phyloseq::distance(Ps_hellinger_EEC, method = "bray", type = "samples")
 p.hclust_EEC <- as.dendrogram(hclust(d_EEC, method = "average"))
 
 # color scheme
-color_EEC <- c("blue", "orange", "blue", "green", "blue", "orange", "orange", "red", "green", "purple", "purple", "green", "purple", "purple", "green", "green", "red", "red", "green", "purple", "red", "red", "green", "orange", "blue", "blue", "green", "orange")
+color_EEC <- c("green", "green", "blue", "blue", "green", "green", "blue", "red", "red", "green", "blue", "blue", "red", "red", "red", "green", "green", "green", "red", "red", "red", "red", "green", "red", "red", "red", "red", "red")
 labels_colors(p.hclust_EEC) <- color_EEC 
 
 # plot
-plot(p.hclust_EEC, hang = -1, cex.lab = 4, cex.axis = 0.8)
+plot(p.hclust_EEC, hang = -1, cex.lab = 1, cex.axis = 0.8, ylab = "Bray-Curtis Dissimilarity")
 
 
 ```
@@ -375,7 +401,7 @@ head(data.scores_EEC)
 
 # plotting the NMDS.
 NMDS_new_EEC <- ggplot(data.scores_EEC, aes(x = NMDS1, y= NMDS2)) + 
-  geom_point(size = 7, aes( shape = season, color = as.factor(year))) + # Choosing mapping for the plot
+  geom_point(size = 7, aes( shape = as.factor(year), color = season )) + # Choosing mapping for the plot
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
     axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
     legend.text = element_text(size = 12, face ="bold", colour ="black"), 
@@ -384,7 +410,7 @@ NMDS_new_EEC <- ggplot(data.scores_EEC, aes(x = NMDS1, y= NMDS2)) +
     legend.title = element_text(size = 14, colour = "black", face = "bold"), 
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
     legend.key=element_blank()) + 
-    labs(x = "NMDS1", color = "Collection Date", y = "NMDS2", shape = "season") # Label formatting
+    labs(x = "NMDS1", color = "Season", y = "NMDS2", shape = "Collection Year") # Label formatting
 
 NMDS_new_EEC
 ```
@@ -400,14 +426,13 @@ variables. More accurately, RDA is a direct gradient analysis technique which su
 
 ```{r}
 
-sample_data(Ps_EEC_hellinger)$collection_date <- as.factor(date_EEC)
-
+sample_data(Ps_EEC_hellinger)$collection_date <- as.factor(format(date_EEC, "%Y"))
 # ordinate
 rda_EEC <- ordinate(Ps_EEC_hellinger, method = "RDA", distance = "bray", formula = ~ Temperature + Salinity + Oxygen + POC + pH + PO4 + SiOH4 + PON + CHLa)
 
 # Plot
 
-RDA_EEC <- plot_ordination(Ps_EEC_hellinger, rda_EEC, type = "sample", color="collection_date", shape = "season")
+RDA_EEC <- plot_ordination(Ps_EEC_hellinger, rda_EEC, type = "sample", color="season", shape = "collection_date")
 
 RDA_EEC
 
@@ -422,7 +447,7 @@ arrowdf_EEC <- data.frame(labels = rownames(arrowmat_EEC), arrowmat_EEC)
 # Define the arrow aesthetic mapping
 arrow_map = aes(xend = RDA1, yend = RDA2, x = 0, y = 0, shape = NULL, color = NULL, label = labels)
 arrowhead = arrow(length = unit(0.05, "npc"))
-label_map <- aes(x = 1.2 * RDA1, 
+label_map <- aes(x = 0.97 * RDA1, 
     y = 1.2 * RDA2, 
     shape = NULL, 
     color = NULL, 
@@ -453,7 +478,7 @@ RDA_EEC +
     legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
-    labs(color = "Date") # Label formatting
+    labs(color = "Season", shape = "year" ) # Label formatting
 
 ```
 
@@ -467,7 +492,7 @@ Ps_MDS_EEC <- ordinate(Ps_EEC_hellinger, "MDS", "bray")
 #plot
 
 #by dates
-plot_ordination(Ps_EEC_hellinger, Ps_MDS_EEC, color = "collection_date", shape = "season") +
+plot_ordination(Ps_EEC_hellinger, Ps_MDS_EEC, color = "season", shape = "collection_date") +
   geom_point(size = 4) + # Choosing mapping for the plot 
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
     axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
@@ -477,7 +502,7 @@ plot_ordination(Ps_EEC_hellinger, Ps_MDS_EEC, color = "collection_date", shape =
     legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
-    labs(color = "Sample Name", shape = "Season") # Label formatting
+    labs(color = "Season", shape = "Collection year") # Label formatting
 
 
 

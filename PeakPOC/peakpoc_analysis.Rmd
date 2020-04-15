@@ -25,7 +25,7 @@ list.files()
 
 # install.packages("phyloseq")
 # install.packages("vegan")s
-#install.packages("DESeq2")
+# install.packages("DESeq2")
 # install.packages("ggplot2")
 # install.packages("dendextend")
 # install.packages("tidyr")
@@ -48,6 +48,7 @@ library("dplyr")
 library("iNEXT")
 library("rgr")
 library("dendextend")
+library("data.table")
 ```
 
 
@@ -96,7 +97,7 @@ sample_info_tab_peakpoc
 - **row.names** = a vector of row names. Setting it to 1 means the name of samples/ASV number is listed in the first column of the table
 - **header** = TRUE if a table contains header for columns. 
 
-## Assigning contigency tables and sample metadata into phyloseq object
+## Assigning contigency tables and sample metadata into a phyloseq object
 
 ```{r}
 
@@ -123,6 +124,9 @@ Ps_hellinger
 
 #Change column names to sample names
 
+sample_data(Ps_peakpoc)$sample_ID <- factor(sample_data(Ps_peakpoc)$sample_ID, 
+                                            levels = sample_data(Ps_peakpoc)$sample_ID[order(as.factor(as.Date(sample_data(Ps_peakpoc)$collection_date_end, format = "%m/%d/%Y")))])
+
 Ps_peakpoc_merged <- merge_samples(Ps_peakpoc, group = "sample_ID") # This is only neccesary if you are not using plotting functions by phyloseq (e.g. dendrogram), otherwise, the name of samples can be manipulated through a parameter in phyloseq plotting function
 
 ```
@@ -139,15 +143,21 @@ Simpson's diversity index is a measure of diversity which takes into account the
 
 ```{r}
 #plot alpha diversity by samples
+
 plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon", "Simpson"), x = "sample_ID", color = "season") + 
-  geom_point(size = 4) + # Enlarge data points 
-  theme(axis.text.x = element_text(size = 8)) # Increase the size of axis text
+  geom_point(size = 5) + # Enlarge data points 
+  theme(axis.text.x = element_text(size = 10)) + # Increase the size of axis text 
+  labs(x = "Sample Name") +
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  )
 
 ```
 
 
 ```{r}
-# plot alpha diversity by month
+# plot alpha diversity by month-
 
 # This is for ggplot to recognize and chronologically sort dates in "collection_date_end", 
 sample_data(Ps_peakpoc)$collection_date_end <- as.factor(as.Date(sample_data(Ps_peakpoc)$collection_date_end, format = "%m/%d/%Y"))
@@ -155,7 +165,14 @@ sample_data(Ps_peakpoc)$collection_date_end <- as.factor(as.Date(sample_data(Ps_
 # Plot based on the collection date. 
 plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon", "Simpson"), x="collection_date_end", color="season") + 
   labs(x = "Collection date end") + 
-  geom_point(size = 4) 
+  geom_point(size = 5) +
+  theme(axis.text.x = element_text(size = 10)) + # Increase the size of axis text 
+  labs(x = "Collection Date") +
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  )
+
 
 ```
 
@@ -178,8 +195,17 @@ otu_table_site_df_peakpoc
 
 # rarefaction curves using iNEXT
 out <- iNEXT(otu_table_site_df_peakpoc, q=0, datatype = "abundance")
-out$DataInfo
-ggiNEXT(out, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs")
+levels(out$DataInfo$site) = sample_data(Ps_peakpoc)$sample_ID[order(as.Date(sample_data(Ps_peakpoc)$collection_date_end, format = "%m/%d/%Y"))]
+
+# Plot 
+ggiNEXT(out, type=1, se= TRUE, facet.var = "order", color = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs") + 
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 10),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  )
+
+
+
 ggiNEXT(out, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
 ggiNEXT(out, type=3, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Coverage based curve")
 ```
@@ -210,6 +236,12 @@ clr_phylum_peakpoc <-  merge_peakpoc %>%
   group_by(Phylum) %>% # aggreagate counts by phylum
   summarise_all(funs(sum)) 
 
+# Checking sum of the counts before and after the aggregation. 
+
+colSums(clr_phylum_peakpoc[,-1]) # sum of aggregated table
+colSums(t(count_peakpoc_correct_names[,-1])) # sum of original table
+
+
 # Make taxonomy name as rownames
 row.names(clr_phylum_peakpoc) <- clr_phylum_peakpoc$Phylum
 clr_phylum_peakpoc$Phylum <- NULL
@@ -235,6 +267,10 @@ source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntuon
 - **sort** = logical. Should the result be sorted on the by columns? 
 - **ifwarn** = by default ifwarn = TRUE which generates a reminder/warning that when carrying out a centred log-ratio transformation all the data/parts must be in the same measurement units. The message can be suppressed by setting ifwarn = FALSE.
 
+**Cross checking**
+When plotting comunity compositions by each taxa rank (phylum, class, order, and family), the counts that corespond to identical taxonomy must be aggregated in order to avoid redundancy in the dataset. The original data table is filtered into each taxa rank with aggregated ASV counts and the data is stored in a object. Correct taxonomy names and its number of counts are manually cross checked by looking at first few rows in the object and the original data table.   
+
+
 Now we can plot. 
 ```{r}
 # plot
@@ -252,13 +288,13 @@ Ps_sample_name_peakpoc <- merge_samples(Ps_hellinger, "sample_ID")
 d_peakpoc <- phyloseq::distance(Ps_sample_name_peakpoc, method = "bray", type = "samples")
 
 # Hierarchical cluster analysis on a set of dissimilarities
-p.hclust_peakpoc <- hclust(d_peakpoc, method = "average")
+p.hclust_peakpoc <- as.dendrogram(hclust(d_peakpoc, method = "average"))
 
 # color scheme
-# color_jp <- c("blue", "orange", "red", "green", "blue", "blue", "blue", "red", "red", "red", "green", "green", "green", "orange", "orange", "orange")
-# labels_colors(p.hclust_jp) <- color_jp 
-plot(p.hclust_peakpoc, hang = -2, cex.lab = 1, cex.axis = 0.8)
-
+color_peakpoc <- c("red", "red", "red", "red", "red", "red", "red", "red", "blue", "blue", "red", "blue", "red", "blue", "blue", "red", "blue", "red", "blue", "blue", "red", "blue", "blue", "blue")
+labels_colors(p.hclust_peakpoc) <- color_peakpoc
+labels_cex(p.hclust_peakpoc) = 0.75
+plot(p.hclust_peakpoc, hang = -3 ,cex.lab = 1.2, cex.axis = 1, cex = 1, ylim=c(0.0, 1.0), ylab = "Bray-Curtis Dissimilarity")
 ```
 
 
@@ -274,7 +310,9 @@ t_count_peakpoc <- t(count_tab_peakpoc)
 NMDS_peakpoc <- decostand(t_count_peakpoc, MARGIN = 2, method = "hellinger" )
 
 # Ordinate
-peakpoc_NMDS <- vegan::metaMDS(NMDS_peakpoc, k=2, distance = "bray")
+peakpoc_NMDS <- vegan::metaMDS(NMDS_peakpoc, k=3, distance = "bray")
+
+peakpoc_NMDS$stress
 
 # Plot stress plot. 
 stressplot(peakpoc_NMDS)
@@ -306,19 +344,22 @@ head(data.scores_peakpoc)
 
 
 # plotting the NMDS.
-NMDS_new_peakpoc <- ggplot(data.scores_peakpoc, aes(x = NMDS1, y= NMDS2)) + 
-  geom_point(size = 4, aes( shape = season, color = as.factor(year))) + # Choosing mapping for the plot 
+NMDS_new_peakpoc <- ggplot(data.scores_peakpoc, aes(x = NMDS1, y= NMDS2)) +
+  geom_point(size = 4, aes( shape = season, color = year)) + # Choosing mapping for the plot
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
-    axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
-    legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
-    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
-    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
-    legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
-    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
-    legend.key=element_blank()) + 
-    labs(color = "Collection year", shape = "season") # Label formatting
-
-NMDS_new_peakpoc
+  axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+  legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+  legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+  axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+  legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+  panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+  legend.key=element_blank()) +
+  labs(color = "Collection year", shape = "Season") #  Label formatting
+  
+# color code
+# cc <- scales::seq_gradient_pal("lightblue2", "midnightblue")(seq(0,1,length.out=12))
+  NMDS_new_peakpoc 
+  # + scale_color_manual(values=cc)
 ```
 
 ## Redundancy analysis 
@@ -334,12 +375,15 @@ variables. More accurately, RDA is a direct gradient analysis technique which su
 sample_data(Ps_hellinger)$sample_ID <- factor(sample_data(Ps_hellinger)$sample_ID, 
                                             levels = sample_data(Ps_hellinger)$sample_ID[order(as.factor(as.Date(sample_data(Ps_hellinger)$collection_date_end, format = "%m/%d/%Y")))])
 
+sample_data(Ps_hellinger)$collection_date_end <- as.Date(sample_data(Ps_hellinger)$collection_date_end, format = "%m/%d/%Y")
+sample_data(Ps_hellinger)$year <- as.factor(format(data.scores_peakpoc$collection_date_end, "%Y")) # This is to add points by year
+
 # ordinate
 rda_peakpoc <- ordinate(Ps_hellinger, method = "RDA", distance = "bray", formula = ~ dICEC + dCH1a_HGIV + sst)
 
 # Plot
 
-RDA_peakpoc <- plot_ordination(Ps_hellinger, rda_peakpoc, type = "samples", color="sample_ID", shape = "season")
+RDA_peakpoc <- plot_ordination(Ps_hellinger, rda_peakpoc, type = "samples", color="year", shape = "season")
 
 # Check the plot
 RDA_peakpoc
@@ -360,14 +404,16 @@ label_map <- aes(x = 1.2 * RDA1,
     color = NULL, 
     label = labels)
 
+cc_2 <- scales::seq_gradient_pal("pink", "red4")(seq(0,1,length.out=12))
+
 # Make a new graphic
 RDA_peakpoc + 
   geom_point(size = 5) + 
   geom_segment(
     mapping = arrow_map, 
-    size = .5, 
+    size = 1, 
     data = arrowdf_peakpoc, 
-    color = "gray", 
+    color = "darkgrey", 
     arrow = arrowhead
   ) + 
   geom_text(
@@ -384,8 +430,8 @@ RDA_peakpoc +
     legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
-    labs( color = "sample name",  shape = "season") # Label formatting
-
+    labs( color = "Year",  shape = "Season") + # Label formatting
+    scale_color_manual(values=cc)
 ```
 
 ## **MDS ordination plot**
@@ -398,7 +444,7 @@ Ps_MDS_peakpoc <- ordinate(Ps_hellinger, "MDS", "bray")
 #plot
 
 #by sample sites
-MDS_peakpoc <- plot_ordination(Ps_hellinger, Ps_MDS_peakpoc, color = "sample_ID", shape = "season") +
+MDS_peakpoc <- plot_ordination(Ps_hellinger, Ps_MDS_peakpoc, color = "year", shape = "season") +
   geom_point(size = 4) + # Choosing mapping for the plot 
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
     axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
@@ -408,8 +454,8 @@ MDS_peakpoc <- plot_ordination(Ps_hellinger, Ps_MDS_peakpoc, color = "sample_ID"
     legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
-    labs(color = "Sample Name", shape = "Season") # Label formatting
-
+    labs(color = "Year", shape = "Season") + # Label formatting
+    scale_color_manual(values=cc)
 MDS_peakpoc
 
 ```

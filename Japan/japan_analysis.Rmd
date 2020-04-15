@@ -140,7 +140,15 @@ Simpson's diversity index is a measure of diversity which takes into account the
 sample_data(Ps_japan)$sample_name <- factor(sample_data(Ps_japan)$sample_name, levels = sample_data(Ps_japan)$sample_name[order(sample_data(Ps_japan)$Collection_Date)])
 
 # PLot
-plot_richness(Ps_japan, measures = c("Chao1", "Shannon", "Simpson"), x = "sample_name", color = "Collection_Date") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8))
+plot_richness(Ps_japan, measures = c("Chao1", "Shannon", "Simpson"), x = "sample_name", color = "Collection_Date") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8)) +
+  geom_point(size = 5) + # Enlarge data points 
+  theme(axis.text.x = element_text(size = 10)) + # Increase the size of axis text 
+  labs(x = "Sample Name") +
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12, face = "bold"),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  ) +
+  labs( color = "Collection Date")
 ```
 
 
@@ -148,7 +156,19 @@ plot_richness(Ps_japan, measures = c("Chao1", "Shannon", "Simpson"), x = "sample
 # plot alpha diversity by Collection date
 
 plot_richness(Ps_japan, measures = c("Chao1", "Shannon", "Simpson"), x="Collection_Date", color = "Depth") + labs(x = "Collection Date") + geom_point(size = 4) + 
-   scale_color_discrete(breaks=c("0m", "5m", "10m", "50m", "200m")) #Reordering label items
+   #scale_color_discrete(breaks=c("0m", "5m", "10m", "50m", "200m")) + #Reordering label items
+  geom_point(size = 5) + # Enlarge data points 
+  theme(axis.text.x = element_text(size = 10)) + # Increase the size of axis text 
+  labs(x = "Sample Name") +
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12, face = "bold"),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6),
+        axis.title.x = element_text(face = "bold", size = 12, colour = "black"),
+        axis.text.x = element_text( size = 12, colour = "black")
+  ) +
+  scale_color_gradient(low = "pink", high = "red") +
+   labs( color = "Depth (m)")
+
 ```
 
 ## iNEXT rarefaction curve
@@ -169,7 +189,11 @@ otu_table_site_df_japan
 # rarefaction curve using iNEXT 
 out_japan <- iNEXT(otu_table_site_df_japan, q=0, datatype = "abundance")
 out_japan$DataInfo
-ggiNEXT(out_japan, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs")
+ggiNEXT(out_japan, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASV") +
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
+  )
 ggiNEXT(out_japan, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
 ggiNEXT(out_japan, type=3, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Coverage based curve")
 ```
@@ -201,6 +225,12 @@ clr_phylum_jp <-  merge_jp %>%
   group_by(Phylum) %>%  # aggreagate counts by phylum
   summarise_all(funs(sum)) 
 
+# Checking sum of the counts before and after the aggregation. 
+
+colSums(clr_phylum_jp[,-1]) # sum of aggregated table
+colSums(count_tab_japan) # sum of original table
+
+
 # Removing first row since the taxonomy name is unknown.
 clr_phylum_jp <- clr_phylum_jp[-1,] 
 
@@ -231,6 +261,9 @@ source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntuon
 - **sort** = logical. Should the result be sorted on the by columns? 
 - **ifwarn** = by default ifwarn = TRUE which generates a reminder/warning that when carrying out a centred log-ratio transformation all the data/parts must be in the same measurement units. The message can be suppressed by setting ifwarn = FALSE.
 
+**Cross checking**
+When plotting comunity compositions by each taxa rank (phylum, class, order, and family), the counts that corespond to identical taxonomy must be aggregated in order to avoid redundancy in the dataset. The original data table is filtered into each taxa rank with aggregated ASV counts and the data is stored in a object. Correct taxonomy names and its number of counts are manually cross checked by looking at first few rows in the object and the original data table.   
+
 Now we can plot
 ```{r}
 # plot
@@ -254,9 +287,9 @@ p.hclust_jp <- as.dendrogram(hclust(d_jp, method = "average"))
 # color scheme
 color_jp <- c("blue", "orange", "red", "green", "blue", "blue", "blue", "red", "red", "red", "green", "green", "green", "orange", "orange", "orange")
 labels_colors(p.hclust_jp) <- color_jp 
-
+labels_cex(p.hclust_jp) = 0.70
 # plot
-plot(p.hclust_jp, hang = -1, cex.lab = 4, cex.axis = 0.8)
+plot(p.hclust_jp, hang = -3, cex.lab = 1.2, cex.axis = 1, cex = 1, ylim=c(0.0, 1.0), ylab = "Bray-Curtis Dissimilarity")
 
 
 ```
@@ -269,13 +302,18 @@ NMDS is a way to condese information from mulidementional data into a 2D represe
 ```{r}
 
 # Hellinger transformation
-NMDS_japan <- decostand(otu_jp, MARGIN = 2, method = "hellinger" )
+otu_jp.hel <- decostand(otu_jp, MARGIN = 2, method = "hellinger" )
+
 
 #Transpose the table.
-example_NMDS <- vegan::metaMDS(NMDS_japan, k=2, distance = "bray")
+example_NMDS <- vegan::metaMDS(otu_jp.hel, k=2, distance = "bray")
+
+example_NMDS$stress
 
 # stress plot
 stressplot(example_NMDS)
+
+
 ```
 
 - **MARGIN** = Margin, if default is not accept. "1" = rows, and "2" = columns of x
@@ -303,9 +341,9 @@ head(data.scores)
 
 # plotting the NMDS.
 NMDS_new_jp <- ggplot(data.scores, aes(x = NMDS1, y= NMDS2)) + 
-  geom_point(size = 9, aes( shape = Depth, color = Collection_Date)) + # Choosing mapping for the plot
-  scale_shape_manual(values = c(16, 15, 17, 3, 8)) + # Specifying shapes for each depth
-  scale_shape_discrete(breaks=c("0m", "5m", "10m", "50m", "200m")) # Reordeing Legend items
+  geom_point(size = 9, aes( shape = as.factor(Depth), color = Collection_Date)) + # Choosing mapping for the plot
+  #scale_shape_manual(values = c(16, 15, 17, 3, 8)) + # Specifying shapes for each depth
+  scale_shape_discrete(breaks=c("0", "5", "10", "50", "200")) + # Reordeing Legend items
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
     axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
     legend.text = element_text(size = 12, face ="bold", colour ="black"), 
@@ -314,7 +352,7 @@ NMDS_new_jp <- ggplot(data.scores, aes(x = NMDS1, y= NMDS2)) +
     legend.title = element_text(size = 14, colour = "black", face = "bold"), 
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
     legend.key=element_blank()) + 
-    labs(x = "NMDS1", color = "Collection Date", y = "NMDS2", shape = "Depth (m)")  # Label formatting
+    labs (color = "Collection Date", y = "NMDS2", shape = "Depth (m)")  # Label formatting
  
 
 NMDS_new_jp
@@ -334,17 +372,20 @@ sample_data(Ps_hellinger_japan)$sample_name <- factor(sample_data(Ps_hellinger_j
 
 
 # ordinate
-rda_japan <- ordinate(Ps_hellinger_japan, method = "RDA", distance = "bray", formula = ~ temperature + Salinity + Oxygen + Nitrate + CHL_a)
+#rda_japan <- ordinate(Ps_hellinger_japan, method = "RDA", distance = "bray", formula = ~ temperature + Salinity + Oxygen + Nitrate + CHL_a + Depth)
+
+rda_japan_v <- rda(t(otu_table(Ps_hellinger_japan)) ~ temperature + Salinity + Oxygen + Nitrate + CHL_a + Depth, data = sample_info_tab_japan)
 
 # Plot
+sample_data(Ps_hellinger_japan)$depth_factor <- as.factor(sample_data(Ps_hellinger_japan)$Depth)
 
-RDA_japan <- plot_ordination(Ps_hellinger_japan, rda_japan, type = "sample", color= "sample_name", shape = "Collection_Date" )
+RDA_japan <- plot_ordination(Ps_hellinger_japan, rda_japan_v, type = "sample", color= "Collection_Date", shape = "depth_factor" )
 RDA_japan
 
 
 
 # Now add the environmental variables as arrows
-arrowmat_japan = vegan::scores(rda_japan, display = "bp")
+arrowmat_japan = vegan::scores(rda_japan_v, display = "bp")
 
 # Add labels, make a data.frame
 arrowdf_japan <- data.frame(labels = rownames(arrowmat_japan), arrowmat_japan)
@@ -352,8 +393,8 @@ arrowdf_japan <- data.frame(labels = rownames(arrowmat_japan), arrowmat_japan)
 # Define the arrow aesthetic mapping
 arrow_map = aes(xend = RDA1, yend = RDA2, x = 0, y = 0, shape = NULL, color = NULL, label = labels)
 arrowhead = arrow(length = unit(0.05, "npc"))
-label_map <- aes(x = 0.85 * RDA1, 
-    y = 1.2 * RDA2, 
+label_map <- aes(x = 0.7 * RDA1, 
+    y = 1 * RDA2, 
     shape = NULL, 
     color = NULL, 
     label = labels)
@@ -363,14 +404,14 @@ RDA_japan +
   geom_point(size = 5) + 
   geom_segment(
     mapping = arrow_map, 
-    size = .5, 
+    size = 0.5, 
     data = arrowdf_japan, 
     color = "gray", 
     arrow = arrowhead
   ) + 
   geom_text(
     mapping = label_map, 
-    size = 5,  
+    size = 4,  
     data = arrowdf_japan, 
     show.legend = FALSE
   ) + 
@@ -385,7 +426,7 @@ RDA_japan +
     legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
-    labs(color = "Sample Name", shape = "date") # Label formatting
+    labs(color = "Collection Date", shape = "Depth (m)") # Label formatting
 
 ```
 
@@ -400,7 +441,7 @@ Ps_MDS_jp <- ordinate(Ps_hellinger_japan, "MDS", "bray")
 #plot
 
 #by dates
-plot_ordination(Ps_hellinger_japan, Ps_MDS_jp, color = "sample_name", shape = "Collection_Date") +
+plot_ordination(Ps_hellinger_japan, Ps_MDS_jp, color = "Collection_Date", shape = "depth_factor") +
   geom_point(size = 4) + # Choosing mapping for the plot 
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
     axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
@@ -410,7 +451,7 @@ plot_ordination(Ps_hellinger_japan, Ps_MDS_jp, color = "sample_name", shape = "C
     legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
-    labs(color = "Sample Name", shape = "date") # Label formatting
+    labs(color = "Collection_date", shape = "Depth (m)") # Label formatting
 
 
 
