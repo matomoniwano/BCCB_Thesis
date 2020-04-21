@@ -60,10 +60,10 @@ plotQualityProfile(fnRs[20])
 plotQualityProfile(fnRs[1:2])
 ```
 
-As shown in the plot graph above, the quality of reads significantly declines at the position of 200 for the forward files and this would be the cutoff point for the truncation. Any point after 200 shows a significant decline in quality score which is not suitable for further processing.   
+As shown in the plot graph above, the quality of reads significantly declines at the position of 250 for the forward files and this would be the cutoff point for the truncation. Any point after 200 shows a significant decline in quality score which is not suitable for further processing.   
 
-For reverse file, truncate position is determined at 150.
-**fnFs[1:2]** = selecting first two files from the targeted fastq files in the directory
+For reverse file, truncate position is determined at 200.
+**fnFs[1:2]** = selecting first two files from the targeted fastq files in the directory.
 
 ### -Assigning a variable for fastq file names after filtering and trimming.- 
 
@@ -249,7 +249,7 @@ cat ASVs_peakpoc.fa | tr -d " " > ASVs_nospaces_peakpoc.fa
 
 
 # and upload this file with a similarity threshold 1 on the  SILVAngs platoform. 
-
+                                     
 
 ```
 
