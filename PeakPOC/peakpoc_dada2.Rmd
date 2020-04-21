@@ -55,6 +55,8 @@ sample.names <- sapply(strsplit(basename(fnFs), "_L"), `[`, 1)
 
 ```{r}
 plotQualityProfile(fnFs[1:5])
+plotQualityProfile(fnFs[20])
+plotQualityProfile(fnRs[20])
 plotQualityProfile(fnRs[1:2])
 ```
 
@@ -197,9 +199,9 @@ Chimera is an errous biological sequence derived from two parent sequences durin
 - **method** = If "pooled": The samples in the sequence table are all pooled together for bimera identification. If "consensus": The samples in a sequence table are independently checked for bimeras, and a consensus decision on each sequence variant is made. If "per-sample": The samples in a sequence table are independently checked for bimeras, and sequence variants are removed (zeroed-out) from samples independently.
 - **verbose** = print verbose text output if TRUE. 
 
-The table contains 1572 ASVs from 25 samples. 
+The table contains 1532 ASVs from 25 samples. 
 
-only 2 % of the sequences were chimeras. 
+only 1.5 % of the sequences were chimeras. 
 
 ### -Tracking the reads from the pipeline-
 ```{r}

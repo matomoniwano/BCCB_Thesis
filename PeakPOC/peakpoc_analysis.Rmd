@@ -127,7 +127,7 @@ Ps_hellinger
 sample_data(Ps_peakpoc)$sample_ID <- factor(sample_data(Ps_peakpoc)$sample_ID, 
                                             levels = sample_data(Ps_peakpoc)$sample_ID[order(as.factor(as.Date(sample_data(Ps_peakpoc)$collection_date_end, format = "%m/%d/%Y")))])
 
-Ps_peakpoc_merged <- merge_samples(Ps_peakpoc, group = "sample_ID") # This is only neccesary if you are not using plotting functions by phyloseq (e.g. dendrogram), otherwise, the name of samples can be manipulated through a parameter in phyloseq plotting function
+Ps_peakpoc_merged <- merge_samples(Ps_peakpoc, group = "sample_thesis") # This is only neccesary if you are not using plotting functions by phyloseq (e.g. dendrogram), otherwise, the name of samples can be manipulated through a parameter in phyloseq plotting function
 
 ```
 
@@ -144,9 +144,9 @@ Simpson's diversity index is a measure of diversity which takes into account the
 ```{r}
 #plot alpha diversity by samples
 
-plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon", "Simpson"), x = "sample_ID", color = "season") + 
+plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon", "Simpson"), x = "sample_thesis", color = "season") + 
   geom_point(size = 5) + # Enlarge data points 
-  theme(axis.text.x = element_text(size = 10)) + # Increase the size of axis text 
+  theme(axis.text.x = element_text(size = 9, angle = 90, face = "bold")) + # Increase the size of axis text 
   labs(x = "Sample Name") +
   theme(legend.title = element_text(size = 14),
         legend.text = element_text(size = 12),
@@ -166,7 +166,7 @@ sample_data(Ps_peakpoc)$collection_date_end <- as.factor(as.Date(sample_data(Ps_
 plot_richness(Ps_peakpoc, measures = c("Chao1", "Shannon", "Simpson"), x="collection_date_end", color="season") + 
   labs(x = "Collection date end") + 
   geom_point(size = 5) +
-  theme(axis.text.x = element_text(size = 10)) + # Increase the size of axis text 
+  theme(axis.text.x = element_text(size = 10, angle = 90, face = "bold")) + # Increase the size of axis text 
   labs(x = "Collection Date") +
   theme(legend.title = element_text(size = 14),
         legend.text = element_text(size = 12),
@@ -200,9 +200,11 @@ levels(out$DataInfo$site) = sample_data(Ps_peakpoc)$sample_ID[order(as.Date(samp
 # Plot 
 ggiNEXT(out, type=1, se= TRUE, facet.var = "order", color = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs") + 
   theme(legend.title = element_text(size = 14),
-        legend.text = element_text(size = 10),
+        legend.text = element_text(size = 12, face = "bold"),
+        axis.text.x = element_text(size = 10, face = "bold"),
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
-  )
+  ) + 
+  scale_shape_manual(values=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,0,1,2,3,4))
 
 
 
@@ -235,6 +237,9 @@ clr_phylum_peakpoc <-  merge_peakpoc %>%
   dplyr::select(2:25, 28) %>% # select() extracts columns from input number.  
   group_by(Phylum) %>% # aggreagate counts by phylum
   summarise_all(funs(sum)) 
+
+# Removing Incertae Sedis	
+clr_phylum_peakpoc <- clr_phylum_peakpoc[-7,] 
 
 # Checking sum of the counts before and after the aggregation. 
 
@@ -282,7 +287,7 @@ source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntuon
 ## Hiracheal clustering dendrogram
 ```{r}
 # Create a phyloseq object with values from a variable "sample_ID" as sample names. 
-Ps_sample_name_peakpoc <- merge_samples(Ps_hellinger, "sample_ID")
+Ps_sample_name_peakpoc <- merge_samples(Ps_hellinger, "sample_thesis")
 
 #Caluclate distances
 d_peakpoc <- phyloseq::distance(Ps_sample_name_peakpoc, method = "bray", type = "samples")
@@ -316,6 +321,34 @@ peakpoc_NMDS$stress
 
 # Plot stress plot. 
 stressplot(peakpoc_NMDS)
+```
+
+```{r}
+# By season
+
+spring <- subset_samples(Ps_peakpoc, season == "spring")
+summer <- subset_samples(Ps_peakpoc, season == "summer")
+count_peakpoc_spring <- as(otu_table(spring), "matrix")
+count_peakpoc_summer <- as(otu_table(summer), "matrix")
+
+# Transpose a count tab (because vegan accepts rows as samples and columns as species.)
+t_count_peakpoc_spring <- t(count_peakpoc_spring)
+t_count_peakpoc_summer <- t(count_peakpoc_summer)
+
+# Hellinger transformation
+NMDS_spring <- decostand(t_count_peakpoc_spring, MARGIN = 2, method = "hellinger")
+NMDS_summer <- decostand(t_count_peakpoc_summer, MARGIN = 2, method = "hellinger")
+
+# Ordinate
+spring_NMDS <- vegan::metaMDS(NMDS_spring, k=3, distance = "bray")
+summer_NMDS <- vegan::metaMDS(NMDS_summer, k=2, distance = "bray")
+
+spring_NMDS$stress
+summer_NMDS$stress
+
+# Plot stress plot. 
+stressplot(spring_NMDS)
+stressplot(summer_NMDS)
 ```
 
 - **MARGIN** = Margin, if default is not accept. "1" = rows, and "2" = columns of x
@@ -362,6 +395,62 @@ NMDS_new_peakpoc <- ggplot(data.scores_peakpoc, aes(x = NMDS1, y= NMDS2)) +
   # + scale_color_manual(values=cc)
 ```
 
+## Analyze by season
+
+```{r}
+# extract NMDS scores (x and y coordinates)
+data.scores_spring <- as.data.frame(scores(spring_NMDS))
+data.scores_summer <- as.data.frame(scores(summer_NMDS))
+
+# add columns to data frame
+data.scores_spring$collection_date_end = as.Date(strptime(sample_data(spring)$collection_date_end, '%Y-%m-%d'))
+data.scores_spring$year = format(data.scores_spring$collection_date_end, "%Y") # This is to add points by year
+data.scores_summer$collection_date_end = as.Date(strptime(sample_data(summer)$collection_date_end, '%Y-%m-%d'))
+data.scores_summer$year = format(data.scores_summer$collection_date_end, "%Y") # This is to add points by year
+
+# Check the content of the metadata
+head(data.scores_spring)
+head(data.scores_summer)
+
+# plotting the NMDS.
+NMDS_new_spring <- ggplot(data.scores_spring, aes(x = NMDS1, y= NMDS2)) +
+  geom_point(size = 4, aes(color = year)) + # Choosing mapping for the plot
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+  axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+  legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+  legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+  axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+  legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+  panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+  legend.key=element_blank()) +
+  labs(color = "Collection year") #  Label formatting
+  
+NMDS_new_summer <- ggplot(data.scores_summer, aes(x = NMDS1, y= NMDS2)) +
+  geom_point(size = 4, aes(color = year)) + # Choosing mapping for the plot
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+  axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+  legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+  legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+  axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+  legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+  panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+  legend.key=element_blank()) +
+  labs(color = "Collection year") #  Label formatting
+  
+# color code
+ cc <- scales::seq_gradient_pal("pink", "red")(seq(0,1,length.out=12))
+  NMDS_new_spring  + scale_color_manual(values=cc)
+  
+  cc2 <- scales::seq_gradient_pal("lightblue", "darkblue")(seq(0,1,length.out=12))
+  NMDS_new_summer + scale_color_manual(values=cc2)
+
+```
+
+
+
+
+
+
 ## Redundancy analysis 
 
 Redundancy analysis (RDA) is a method to extract and summarise the variation in a set of response variables that can be explained by a set of explanatory 
@@ -379,7 +468,7 @@ sample_data(Ps_hellinger)$collection_date_end <- as.Date(sample_data(Ps_hellinge
 sample_data(Ps_hellinger)$year <- as.factor(format(data.scores_peakpoc$collection_date_end, "%Y")) # This is to add points by year
 
 # ordinate
-rda_peakpoc <- ordinate(Ps_hellinger, method = "RDA", distance = "bray", formula = ~ dICEC + dCH1a_HGIV + sst)
+rda_peakpoc <- ordinate(Ps_hellinger, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature)
 
 # Plot
 
@@ -398,13 +487,13 @@ arrowdf_peakpoc <- data.frame(labels = rownames(arrowmat_peakpoc), arrowmat_peak
 # Define the arrow aesthetic mapping
 arrow_map = aes(xend = RDA1, yend = RDA2, x = 0, y = 0, shape = NULL, color = NULL, label = labels)
 arrowhead = arrow(length = unit(0.05, "npc")) # length of arrows
-label_map <- aes(x = 1.2 * RDA1,
+label_map <- aes(x = 0.8 * RDA1,
     y = 1.2 * RDA2, 
     shape = NULL, 
     color = NULL, 
     label = labels)
 
-cc_2 <- scales::seq_gradient_pal("pink", "red4")(seq(0,1,length.out=12))
+cc_peakpoc <- scales::seq_gradient_pal("green", "purple")(seq(0,1,length.out=12))
 
 # Make a new graphic
 RDA_peakpoc + 
@@ -431,8 +520,104 @@ RDA_peakpoc +
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
     labs( color = "Year",  shape = "Season") + # Label formatting
-    scale_color_manual(values=cc)
+    scale_color_manual(values=cc_peakpoc)
 ```
+
+
+```{r}
+# by season
+spring_RDA <- subset_samples(Ps_hellinger, season == "spring")
+summer_RDA <- subset_samples(Ps_hellinger, season == "summer")
+
+# Reorder sample name by date
+
+sample_data(spring_RDA)$collection_date_end <- as.Date(sample_data(spring_RDA)$collection_date_end, format = "%Y-%m-%d")
+sample_data(spring_RDA)$year <- as.factor(format(sample_data(spring_RDA)$collection_date_end, "%Y")) # This is to add points by year
+
+sample_data(summer_RDA)$collection_date_end <- as.Date(sample_data(summer_RDA)$collection_date_end, format = "%Y-%m-%d")
+sample_data(summer_RDA)$year <- as.factor(format(sample_data(summer_RDA)$collection_date_end, "%Y")) # This is to add points by year
+
+# ordinate
+rda_spring <- ordinate(spring_RDA, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature)
+rda_summer <- ordinate(summer_RDA, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature)
+
+# Plot
+
+RDA_spring <- plot_ordination(spring_RDA, rda_spring, type = "samples", color="year")
+RDA_summer <- plot_ordination(summer_RDA, rda_summer, type = "samples", color="year")
+
+# Now add the environmental variables as arrows
+arrowmat_spring = vegan::scores(rda_spring, display = "bp")
+arrowmat_summer = vegan::scores(rda_summer, display = "bp")
+
+# Add labels, make a data.frame
+arrowdf_spring <- data.frame(labels = rownames(arrowmat_spring), arrowmat_spring)
+arrowdf_summer <- data.frame(labels = rownames(arrowmat_summer), arrowmat_summer)
+
+# Define the arrow aesthetic mapping
+arrow_map = aes(xend = RDA1, yend = RDA2, x = 0, y = 0, shape = NULL, color = NULL, label = labels)
+arrowhead = arrow(length = unit(0.05, "npc")) # length of arrows
+label_map <- aes(x = 0.8 * RDA1,
+    y = 1.2 * RDA2, 
+    shape = NULL, 
+    color = NULL, 
+    label = labels)
+
+# Make a new graphic
+RDA_spring + 
+  geom_point(size = 5) + 
+  geom_segment(
+    mapping = arrow_map, 
+    size = 1, 
+    data = arrowdf_spring, 
+    color = "darkgrey", 
+    arrow = arrowhead
+  ) + 
+  geom_text(
+    mapping = label_map, 
+    size = 5,  
+    data = arrowdf_spring, 
+    show.legend = FALSE
+  ) +
+   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+    legend.key=element_blank()) + 
+    labs( color = "Year") + # Label formatting
+    scale_color_manual(values=cc)
+
+# Make a new graphic
+RDA_summer + 
+  geom_point(size = 5) + 
+  geom_segment(
+    mapping = arrow_map, 
+    size = 1, 
+    data = arrowdf_summer, 
+    color = "darkgrey", 
+    arrow = arrowhead
+  ) + 
+  geom_text(
+    mapping = label_map, 
+    size = 5,  
+    data = arrowdf_summer, 
+    show.legend = FALSE
+  ) +
+   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), # legend position formatting
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), # axis title formatting
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
+    legend.key=element_blank()) + 
+    labs( color = "Year") + # Label formatting
+    scale_color_manual(values=cc2)
+```
+
 
 ## **MDS ordination plot**
 

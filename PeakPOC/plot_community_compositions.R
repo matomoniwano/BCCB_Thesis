@@ -8,7 +8,7 @@ StackedBarplotClr <- function(
   width = 8,
   height = 6,
   colLegend = 1, 
-  sizeLegend = 1, 
+  sizeLegend = 3, 
   main = "",
   ylab = "ylab",
   density = 50, # width of lines (for texture)
@@ -59,7 +59,7 @@ StackedBarplotClr <- function(
   require(viridis)
   # set palette
   palette(
-    viridis(
+    rainbow(
       length(
         unique(rownames(x))
       )
@@ -109,14 +109,14 @@ StackedBarplotClr <- function(
 # have phyla as rows and samples as columns
 StackedBarplotClr(
   x = clr_phylum_peakpoc,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_plots\\Community_phylum_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_phylum_EUK_FRAM.pdf",
   main = "Community Composition (Phylum)",
   ylab = "relative abundance clr",
   inset = c( -0.6,0),
   width = 15,
   height = 9,
   mainLegend = "Phylum",
-  colLegend = 3,
+  colLegend = 1,
   mar = c(10.1, 4.1, 4.1, 27.1)
 )
 ###############################################
@@ -125,13 +125,13 @@ StackedBarplotClr(
 # have classes as rows and samples as columns
 StackedBarplotClr(
   x = clr_class_peakpoc,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_plots\\Community_class_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_class_EUK_FRAM.pdf",
   main = "Community Composition (Class)",
   ylab = "relative abundance clr",
   inset = c( -0.6,-0.02),
   width = 25,
   height = 15,
-  colLegend = 2,
+  colLegend = 1,
   mar = c(10.1, 4.1, 4.1, 60.1),
   mainLegend = "Class"
 )
@@ -142,13 +142,13 @@ StackedBarplotClr(
 
 StackedBarplotClr(
   x = clr_order_peakpoc,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_plots\\Community_order_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_order_EUK_FRAM.pdf",
   main = "Community Composition (Order)",
   ylab = "relative abundance clr",
   inset = c( -0.6,-0.02),
   width = 30,
   height = 15,
-  colLegend = 3,
+  colLegend = 1,
   mar = c(10.1, 4.1, 4.1, 60.1),
   mainLegend = "Order"
 )
@@ -159,13 +159,13 @@ StackedBarplotClr(
 
 StackedBarplotClr(
   x = clr_family_peakpoc,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_plots\\Community_family_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_family_EUK_FRAM.pdf",
   main = "Community Composition (Family)",
   ylab = "relative abundance clr",
   inset = c( -1.0,-0.02),
   width = 30,
   height = 15,
-  colLegend = 4,
+  colLegend = 1,
   mar = c(10.1, 4.1, 4.1, 80.1),
   mainLegend = "Family"
 )
