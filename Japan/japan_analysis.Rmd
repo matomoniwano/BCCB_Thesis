@@ -118,7 +118,7 @@ Ps_japan
 Ps_hellinger_japan
 
 #Change column names to sample names
-PS_japan_sample_name <- merge_samples(Ps_japan, "sample_name") # This is only neccesary if you are not using plotting functions by phyloseq (e.g. dendrogram), otherwise, the name of samples can be manipulated through a parameter in phyloseq plotting function
+PS_japan_sample_name <- merge_samples(Ps_japan, "thesis_name") # This is only neccesary if you are not using plotting functions by phyloseq (e.g. dendrogram), otherwise, the name of samples can be manipulated through a parameter in phyloseq plotting function
 
 ```
 
@@ -140,7 +140,7 @@ Simpson's diversity index is a measure of diversity which takes into account the
 sample_data(Ps_japan)$sample_name <- factor(sample_data(Ps_japan)$sample_name, levels = sample_data(Ps_japan)$sample_name[order(sample_data(Ps_japan)$Collection_Date)])
 
 # PLot
-plot_richness(Ps_japan, measures = c("Chao1", "Shannon", "Simpson"), x = "sample_name", color = "Collection_Date") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8)) +
+plot_richness(Ps_japan, measures = c("Chao1", "Shannon", "Simpson"), x = "thesis_name", color = "Collection_Date") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 9, angle = 90, face  = "bold")) +
   geom_point(size = 5) + # Enlarge data points 
   theme(axis.text.x = element_text(size = 10)) + # Increase the size of axis text 
   labs(x = "Sample Name") +
@@ -190,10 +190,11 @@ otu_table_site_df_japan
 out_japan <- iNEXT(otu_table_site_df_japan, q=0, datatype = "abundance")
 out_japan$DataInfo
 ggiNEXT(out_japan, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASV") +
-  theme(legend.title = element_text(size = 14),
-        legend.text = element_text(size = 12),
+  theme(legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 12, face = "bold"),
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
-  )
+  ) + 
+  scale_shape_manual(values=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)) 
 ggiNEXT(out_japan, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
 ggiNEXT(out_japan, type=3, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Coverage based curve")
 ```
@@ -216,14 +217,22 @@ Ratio transformations capture the relationships between each ASVs in the dataset
 
 ```{r}
 
+# export the count table with right column names
+count_jp_correct_names <- as(otu_table(PS_japan_sample_name), "matrix")  # extract a count table from the phyloseq object
+
+# export the taxonomy table from the phyloseq object
+tax_japan <- as(tax_table(PS_japan_sample_name), "matrix")
 # export a count table with the right column name
-merge_jp <- merge(count_tab_japan, tax_tab_japan, by = 0, sort = FALSE)
+merge_jp <- merge(t(count_jp_correct_names), tax_japan, by = 0, sort = FALSE)
 
 # Aggregate ASV counts for Phylum
 clr_phylum_jp <-  merge_jp %>% 
   dplyr::select(2:17, 20) %>% # select() extracts columns from input number. 
   group_by(Phylum) %>%  # aggreagate counts by phylum
   summarise_all(funs(sum)) 
+
+# Removing Incertae Sedis	
+clr_phylum_jp <- clr_phylum_jp[c(-1,-8),] 
 
 # Checking sum of the counts before and after the aggregation. 
 
@@ -275,8 +284,8 @@ source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntuon
 ## Hiracheal clustering dendrogram
 ```{r}
 
-colDate <- get_variable(Ps_hellinger_japan, "Collection_Date")
-Ps_sample_name_jp <- merge_samples(Ps_hellinger_japan, "sample_name")
+colDate <- get_variable(Ps_hellinger_japan, "thesis_name")
+Ps_sample_name_jp <- merge_samples(Ps_hellinger_japan, "thesis_name")
 
 #Caluclate distances
 d_jp <- phyloseq::distance(Ps_sample_name_jp, method = "bray", type = "samples")
@@ -287,9 +296,9 @@ p.hclust_jp <- as.dendrogram(hclust(d_jp, method = "average"))
 # color scheme
 color_jp <- c("blue", "orange", "red", "green", "blue", "blue", "blue", "red", "red", "red", "green", "green", "green", "orange", "orange", "orange")
 labels_colors(p.hclust_jp) <- color_jp 
-labels_cex(p.hclust_jp) = 0.70
+labels_cex(p.hclust_jp) = 0.7
 # plot
-plot(p.hclust_jp, hang = -3, cex.lab = 1.2, cex.axis = 1, cex = 1, ylim=c(0.0, 1.0), ylab = "Bray-Curtis Dissimilarity")
+plot(p.hclust_jp, hang = -5, cex.lab = 1.2, cex.axis = 1, cex = 1, ylim=c(0.0, 1.0), ylab = "Bray-Curtis Dissimilarity")
 
 
 ```
@@ -411,7 +420,7 @@ RDA_japan +
   ) + 
   geom_text(
     mapping = label_map, 
-    size = 4,  
+    size = 5,  
     data = arrowdf_japan, 
     show.legend = FALSE
   ) + 

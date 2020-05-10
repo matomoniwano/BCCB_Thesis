@@ -8,9 +8,10 @@ clr_class_jp <-  merge_jp %>%
   group_by(Class) %>% 
   summarise_all(funs(sum)) 
 
-clr_class_jp <- clr_class_jp[c(-1, -29),] # Removing first and last rows since the taxonomy name is unknown.
+clr_class_jp <- clr_class_jp[c(-1,-4,-18,-26, -29),] # Removing first and last rows since the taxonomy name is unknown.
 
 # Make taxonomy name as rownames
+
 row.names(clr_class_jp) <- clr_class_jp$Class
 clr_class_jp$Class <- NULL
 
@@ -42,6 +43,14 @@ clr_order_jp <- clr_order_jp[c(-1, -56),] # Removing first and last rows since t
 row.names(clr_order_jp) <- clr_order_jp$Order
 clr_order_jp$Order <- NULL
 
+# Pruning ASV that represents <1% of all ASVs
+clr_order_jp$condition <- rowSums(clr_order_jp) / sum(clr_order_jp) * 100 > 1
+clr_order_jp$rn <- rownames(clr_order_jp)
+clr_order_jp <- clr_order_jp[clr_order_jp$condition == TRUE,]
+row.names(clr_order_jp) <- clr_order_jp$rn
+clr_order_jp$condition <- NULL
+clr_order_jp$rn <- NULL
+
 # make samples into rows
 
 clr_order_jp_t <- t(clr_order_jp)
@@ -72,6 +81,13 @@ clr_family_jp <- clr_family_jp[c(-1, -119),] # Removing first and last rows sinc
 row.names(clr_family_jp) <- clr_family_jp$Family
 clr_family_jp$Family <- NULL
 
+# Pruning ASV that represents <1% of all ASVs
+clr_family_jp$condition <- rowSums(clr_family_jp) / sum(clr_family_jp) * 100 > 1
+clr_family_jp$rn <- rownames(clr_family_jp)
+clr_family_jp <- clr_family_jp[clr_family_jp$condition == TRUE,]
+row.names(clr_family_jp) <- clr_family_jp$rn
+clr_family_jp$condition <- NULL
+clr_family_jp$rn <- NULL
 # make samples into rows
 
 clr_family_jp_t <- t(clr_family_jp)

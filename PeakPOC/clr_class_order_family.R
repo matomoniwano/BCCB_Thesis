@@ -106,3 +106,43 @@ rm(clr_family_peakpoc)
 clr_family_peakpoc <- t(clr(clr_family_peakpoc_t, ifwarn = FALSE))
 
 rm(clr_family_peakpoc_t)
+
+#==========================================================================
+# genus
+#==========================================================================
+
+
+clr_genus_peakpoc <-  merge_peakpoc %>% 
+  dplyr::select(2:25, 32) %>% 
+  group_by(Genus) %>% 
+  summarise_all(funs(sum)) 
+
+clr_genus_peakpoc <- clr_genus_peakpoc[c(-1, -81),] # Removing first and last rows since the taxonomy name is unknown.
+
+# Make taxonomy name as rownames
+row.names(clr_genus_peakpoc) <- clr_genus_peakpoc$Genus
+clr_genus_peakpoc$Genus <- NULL
+
+# Pruning ASV that represents <5% of all ASVs
+
+clr__peakpoc$condition <- rowSums(clr_family_peakpoc) / sum(clr_family_peakpoc) * 100 > 1
+clr_family_peakpoc$rn <- rownames(clr_family_peakpoc)
+clr_family_peakpoc <- clr_family_peakpoc[clr_family_peakpoc$condition == TRUE,]
+row.names(clr_family_peakpoc) <- clr_family_peakpoc$rn
+clr_family_peakpoc$condition <- NULL
+clr_family_peakpoc$rn <- NULL
+
+# make samples into rows
+
+clr_family_peakpoc_t <- t(clr_family_peakpoc)
+
+# if the value in the table is 0, add a small constant 0.1 to make sure we can take the log
+clr_family_peakpoc_t[clr_family_peakpoc_t == 0] <- 0.1
+rm(clr_family_peakpoc)
+
+# CLR transformation on OTU table
+# CLR = taking log from ratio calculated by proportion of each ASVs within a sample
+
+clr_family_peakpoc <- t(clr(clr_family_peakpoc_t, ifwarn = FALSE))
+
+rm(clr_family_peakpoc_t)

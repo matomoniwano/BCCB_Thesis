@@ -168,17 +168,6 @@ out_2013_2015 <- filterAndTrim(
   trimLeft = c(17, 17),
   maxN=0,
   maxEE=c(1, 3),
-
-out <- filterAndTrim(
-  fwd = fnFs,
-  filt = filtFs, 
-  rev = fnRs,
-  filt.rev = filtRs,
-  truncLen=c(250,200),
-  trimLeft = c(17, 18),
-  maxN=0,
-  maxEE=c(1),
-
   truncQ=2,
   rm.phix=TRUE,
   compress=TRUE,
@@ -186,8 +175,6 @@ out <- filterAndTrim(
 
 
 head(out_2013_2015)
-=======
-head(out)
 
 ```
 
@@ -264,15 +251,6 @@ names(derep_forward_2013_2015) <- sample.names_2013_2015
 derep_reverse_2013_2015 <- derepFastq(filtRs_2013_2015, verbose = TRUE)
 names(derep_reverse_2013_2015) <- sample.names_2013_2015
 
-derep_forward <- derepFastq(filtFs, verbose=TRUE)
-# Name the derep-class object by the sample names. 
-names(derep_forward) <- sample.names
-
-# reverse files
-derep_reverse <- derepFastq(filtRs, verbose = TRUE)
-names(derep_reverse) <- sample.names
-
-
 ```
 - **verbose** = if TRUE, throw standardR messengeson the intermittent and final status of the dereplication. In this case, it is set to TRUE so that the process of dereplication is show in the intermittent. 
 
@@ -289,10 +267,6 @@ dadaRs_2013_2015 <- dada(derep_reverse_2013_2015, err=errR_2013_2015, multithrea
 dadaFs_2011_2013[[1]]
 dadaFs_2013_2015[[1]]
 
-dadaFs <- dada(derep_forward, err=errF, multithread=TRUE, pool="pseudo")
-dadaRs <- dada(derep_reverse, err=errR, multithread=TRUE, pool="pseudo")
-dadaFs[[1]]
-
 ```
 - **err** = 16xN numeric matrix, or an object coercible by getErrors such as the output of the learnErrors function operated in the previous step. 'errF' is the name of variable that was used to store the result from the previous step.
 - **pool** = If pool = TRUE, the algorithm will pool together all samples prior to sample inference. If pool = FALSE, sample inference is performed on each sample individually. If pool = "pseudo", the algorithm will perform pseudo-pooling between individually processed samples. In other words, when sample A has 1000 copies of of sequence Z while sample B only contains one single copy of sequence Z, sequence Z is likely to be filtered out of sample B although it was a true "singleton" among other sequences in the sample B. This is what is expected to happen when the parameter 'pool' is set to FALSE. On the other hand, when the paramter 'pool' is set to TRUE, it is going to require inconvinient over-workload of computation if the large datasets are processed. For this reason, the parameter "pseudo" option lies somewhere between these two pooling options. Pesudo option contains a two step process i which independent processing is performed twice: First on the raw data alone, and then on the raw data again but informed by priors generated from the first round of processing in the second time. Pseudo-pooling provides a more accurate resolution of ASVs. For this reason, pseudo option is used in this datasets. 
@@ -300,7 +274,6 @@ dadaFs[[1]]
 From the first sample, 132 true sequence variants from the 2967 unique sequence are detected. 
 
 
-<<<<<<< HEAD
 ### Merging forward and reverse reads together for 2013 - 2015
 
 ```{r}
@@ -310,10 +283,6 @@ head(mergers_2013_2015[1:5])
 
 ### Merging forward and reverse reads together. 
 
-```{r}
-mergers <- mergePairs(dadaFs, derep_forward, dadaRs, derep_reverse, verbose=TRUE)
-# Inspect the merger data.frame from the first sample
-head(mergers[1:5])
 
 ```
 
@@ -339,15 +308,6 @@ dim(seqtab_2013_2015)
 # inspect distribution of sequence lengths
 table(nchar(getSequences(seqtab_2013_2015)))
 
-seqtab <- makeSequenceTable(samples = mergers)
-dim(seqtab)
-# inspect distribution of sequence lengths
-table(nchar(getSequences(seqtab)))
-
-#remove non-target length sequences from the sequence table
-seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 349:451]
-table(nchar(getSequences(seqtab2)))
-
 ``` 
 
 ### -Chimera detection- 
@@ -364,9 +324,6 @@ dim(seqtab.nochim_2013_2015)
 sum(seqtab.nochim_2013_2015)/sum(seqtab_2013_2015)
 
 
-seqtab.nochim <- removeBimeraDenovo(unqs = seqtab2, method = "consensus", multithread = TRUE, verbose = TRUE)
-dim(seqtab.nochim)
-sum(seqtab.nochim)/sum(seqtab)
 
 ```
 Chimera is an errous biological sequence derived from two parent sequences during the process of amplification 

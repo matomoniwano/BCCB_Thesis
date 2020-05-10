@@ -217,12 +217,12 @@ plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection
 
 ```{r}
 #plot alpha diversity by samples colored by season
-plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "collection_date", color = "season") + geom_point(size = 4) + theme(axis.text.x = element_text(size = 8)) +
+plot_richness(test, measures = c("Chao1", "Shannon", "Simpson"), x = "thesis_name", color = "season") + geom_point(size = 5) + theme(axis.text.x = element_text(size = 9, angle = 90, face = "bold")) +
  theme(legend.title = element_text(size = 14),
         legend.text = element_text(size = 12, face = "bold"),
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
   ) +
-  labs(color = "Season", x = "Collection Date")
+  labs(color = "Season", x = "sample_name")
 ```
 
 
@@ -235,7 +235,7 @@ iNEXT function only allws data frame or contigency table as input, so if samples
 
 #Change name of column by sample names
 sample_data(Ps_EEC)$collection_date <- as.Date(sample_data(Ps_EEC)$collection_date, format = '%m/%d/%Y')
-PS_EEC_sample_name <- merge_samples(Ps_EEC, "collection_date")
+PS_EEC_sample_name <- merge_samples(Ps_EEC, "thesis_name")
 
 otu_table_site_EEC <- as(otu_table(PS_EEC_sample_name), "matrix")
 if(!taxa_are_rows(PS_EEC_sample_name)){otu_table_site_EEC <- t(otu_table_site_EEC)}
@@ -251,11 +251,11 @@ otu_table_site_df_EEC
 out_EEC <- iNEXT(otu_table_site_df_EEC, q=0, datatype = "abundance")
 out_EEC$DataInfo
 ggiNEXT(out_EEC, type=1, se= TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs") +
- theme(legend.title = element_text(size = 14),
-        legend.text = element_text(size = 12, face = "bold"),
+ theme(legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 14, face = "bold"),
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
   ) +
-  guides(color=guide_legend(title="Guides", ncol=length(levels(factor(out_EEC$DataInfo$site)))))
+  scale_shape_manual(values=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,0,1,2,3,4,5,6,7,8,9)) 
 
 
 ggiNEXT(out_EEC, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
@@ -298,9 +298,19 @@ clr_phylum_EEC <-  merge_EEC %>%
 colSums(clr_phylum_EEC[,-1]) # sum of aggregated table
 colSums(t(count_EEC_correct_names)) # sum of original table
 
+
+
 # Make taxonomy name as rownames
 row.names(clr_phylum_EEC) <- clr_phylum_EEC$Phylum
 clr_phylum_EEC$Phylum <- NULL
+
+# Pruning ASV that represents <1% of all ASVs
+clr_phylum_EEC$condition <- rowSums(clr_phylum_EEC) / sum(clr_phylum_EEC) * 100 > 1
+clr_phylum_EEC$rn <- rownames(clr_phylum_EEC)
+clr_phylum_EEC <- clr_phylum_EEC[clr_phylum_EEC$condition == TRUE,]
+row.names(clr_phylum_EEC) <- clr_phylum_EEC$rn
+clr_phylum_EEC$condition <- NULL
+clr_phylum_EEC$rn <- NULL
 
 # make samples into rows
 
@@ -341,8 +351,8 @@ source("C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntuon
 ## Hiracheal clustering dendrogram
 ```{r}
 
-colDate <- get_variable(Ps_EEC_hellinger, "collection_date")
-Ps_hellinger_EEC <- merge_samples(Ps_EEC_hellinger, "collection_date")
+colDate <- get_variable(Ps_EEC_hellinger, "thesis_name")
+Ps_hellinger_EEC <- merge_samples(Ps_EEC_hellinger, "thesis_name")
 
 #Caluclate distances
 
@@ -354,9 +364,9 @@ p.hclust_EEC <- as.dendrogram(hclust(d_EEC, method = "average"))
 # color scheme
 color_EEC <- c("green", "green", "blue", "blue", "green", "green", "blue", "red", "red", "green", "blue", "blue", "red", "red", "red", "green", "green", "green", "red", "red", "red", "red", "green", "red", "red", "red", "red", "red")
 labels_colors(p.hclust_EEC) <- color_EEC 
+labels_cex(p.hclust_EEC) = 0.75
+plot(p.hclust_EEC, hang = -5, cex.lab = 1.2, cex.axis = 1, cex = 1, ylim=c(0.0,1.0), ylab = "Bray-Curtis Dissimilarity")
 
-# plot
-plot(p.hclust_EEC, hang = -1, cex.lab = 1, cex.axis = 0.8, ylab = "Bray-Curtis Dissimilarity")
 
 
 ```

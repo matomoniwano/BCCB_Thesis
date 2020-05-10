@@ -8,7 +8,7 @@ StackedBarplotClr <- function(
   width = 8,
   height = 6,
   colLegend = 1, 
-  sizeLegend = 1, 
+  sizeLegend = 3, 
   main = "",
   ylab = "ylab",
   density = 50, # width of lines (for texture)
@@ -59,7 +59,7 @@ StackedBarplotClr <- function(
   require(viridis)
   # set palette
   palette(
-    viridis(
+    rainbow(
       length(
         unique(rownames(x))
       )
@@ -109,15 +109,15 @@ StackedBarplotClr <- function(
 # have phyla as rows and samples as columns
 StackedBarplotClr(
   x = clr_phylum_jp,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_phylum_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_phylum_EUK_JAPAN.pdf",
   main = "Community Composition (Phylum)",
   ylab = "relative abundance clr",
   inset = c( -0.6,0),
   width = 15,
-  height = 8,
+  height = 9,
   mainLegend = "Phylum",
-  colLegend = 2,
-  mar = c(5.1, 4.1, 4.1, 27.1)
+  colLegend = 1,
+  mar = c(15.1, 4.1, 4.1, 27.1)
 )
 ###############################################
 ## Plot for Class
@@ -125,14 +125,14 @@ StackedBarplotClr(
 # have classes as rows and samples as columns
 StackedBarplotClr(
   x = clr_class_jp,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_class_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_class_EUK_JAPAN.pdf",
   main = "Community Composition (Class)",
   ylab = "relative abundance clr",
   inset = c( -0.98,-0.08),
-  width = 17,
-  height = 11,
+  width = 25,
+  height = 15,
   colLegend = 2,
-  mar = c(5.1, 4.1, 4.1, 36.1),
+  mar = c(15.1, 4.1, 4.1, 65.1),
   mainLegend = "Class"
 )
 ###############################################
@@ -142,14 +142,14 @@ StackedBarplotClr(
 
 StackedBarplotClr(
   x = clr_order_jp,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_order_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_order_EUK_JAPAN.pdf",
   main = "Community Composition (Order)",
   ylab = "relative abundance clr",
   inset = c( -1.08,-0.04),
-  width = 33,
-  height = 18,
-  colLegend = 3,
-  mar = c(5.1, 4.1, 4.1, 80.1),
+  width = 25,
+  height = 20,
+  colLegend = 1,
+  mar = c(15.1, 4.1, 4.1, 70.1),
   mainLegend = "Order"
 )
 ###############################################
@@ -159,13 +159,13 @@ StackedBarplotClr(
 
 StackedBarplotClr(
   x = clr_family_jp,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_family_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\Japan\\japan_plots\\Community_family_EUK_JAPAN.pdf",
   main = "Community Composition (Family)",
   ylab = "relative abundance clr",
   inset = c( -2.1,-0.02),
-  width = 43,
-  height = 23,
-  colLegend = 4,
-  mar = c(5.1, 4.1, 4.1, 138.1),
+  width = 30,
+  height = 15,
+  colLegend = 1,
+  mar = c(15.1, 4.1, 4.1, 120.1),
   mainLegend = "Family"
 )

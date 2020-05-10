@@ -12,6 +12,14 @@ clr_class_EEC <-  merge_EEC %>%
 row.names(clr_class_EEC) <- clr_class_EEC$Class
 clr_class_EEC$Class <- NULL
 
+# Pruning ASV that represents <1% of all ASVs
+clr_class_EEC$condition <- rowSums(clr_class_EEC) / sum(clr_class_EEC) * 100 > 1
+clr_class_EEC$rn <- rownames(clr_class_EEC)
+clr_class_EEC <- clr_class_EEC[clr_class_EEC$condition == TRUE,]
+row.names(clr_class_EEC) <- clr_class_EEC$rn
+clr_class_EEC$condition <- NULL
+clr_class_EEC$rn <- NULL
+
 # make samples into rows
 
 clr_class_EEC_t <- t(clr_class_EEC)
@@ -37,6 +45,15 @@ clr_order_EEC <-  merge_EEC %>%
 # Make taxonomy name as rownames
 row.names(clr_order_EEC) <- clr_order_EEC$Order
 clr_order_EEC$Order <- NULL
+
+
+# Pruning ASV that represents <1% of all ASVs
+clr_order_EEC$condition <- rowSums(clr_order_EEC) / sum(clr_order_EEC) * 100 > 1
+clr_order_EEC$rn <- rownames(clr_order_EEC)
+clr_order_EEC <- clr_order_EEC[clr_order_EEC$condition == TRUE,]
+row.names(clr_order_EEC) <- clr_order_EEC$rn
+clr_order_EEC$condition <- NULL
+clr_order_EEC$rn <- NULL
 
 # make samples into rows
 
@@ -65,6 +82,14 @@ clr_family_EEC <-  merge_EEC %>%
 # Make taxonomy name as rownames
 row.names(clr_family_EEC) <- clr_family_EEC$Family
 clr_family_EEC$Family <- NULL
+
+# Pruning ASV that represents <1% of all ASVs
+clr_family_EEC$condition <- rowSums(clr_family_EEC) / sum(clr_family_EEC) * 100 > 1
+clr_family_EEC$rn <- rownames(clr_family_EEC)
+clr_family_EEC <- clr_family_EEC[clr_family_EEC$condition == TRUE,]
+row.names(clr_family_EEC) <- clr_family_EEC$rn
+clr_family_EEC$condition <- NULL
+clr_family_EEC$rn <- NULL
 
 # make samples into rows
 

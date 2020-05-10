@@ -200,12 +200,11 @@ levels(out$DataInfo$site) = sample_data(Ps_peakpoc)$sample_ID[order(as.Date(samp
 # Plot 
 ggiNEXT(out, type=1, se= TRUE, facet.var = "order", color = "site") + theme(legend.text = element_text(size = 7)) + ylab("Number of ASVs") + 
   theme(legend.title = element_text(size = 14),
-        legend.text = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 10, face = "bold"),
+        legend.text = element_text(size = 13, face = "bold", ),
+        axis.text.x = element_text(size = , face = "bold"),
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.6)
   ) + 
-  scale_shape_manual(values=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,0,1,2,3,4))
-
+  scale_shape_manual(values=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,0,1,2,3,4)) 
 
 
 ggiNEXT(out, type=2, se = TRUE, facet.var = "order", color.var = "site") + theme(legend.text = element_text(size = 7)) + ggtitle("Sample completeness curve")
@@ -298,7 +297,7 @@ p.hclust_peakpoc <- as.dendrogram(hclust(d_peakpoc, method = "average"))
 # color scheme
 color_peakpoc <- c("red", "red", "red", "red", "red", "red", "red", "red", "blue", "blue", "red", "blue", "red", "blue", "blue", "red", "blue", "red", "blue", "blue", "red", "blue", "blue", "blue")
 labels_colors(p.hclust_peakpoc) <- color_peakpoc
-labels_cex(p.hclust_peakpoc) = 0.75
+labels_cex(p.hclust_peakpoc) = 0.70
 plot(p.hclust_peakpoc, hang = -3 ,cex.lab = 1.2, cex.axis = 1, cex = 1, ylim=c(0.0, 1.0), ylab = "Bray-Curtis Dissimilarity")
 ```
 
@@ -387,12 +386,12 @@ NMDS_new_peakpoc <- ggplot(data.scores_peakpoc, aes(x = NMDS1, y= NMDS2)) +
   legend.title = element_text(size = 12, colour = "black", face = "bold"), # legend title formatting
   panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
   legend.key=element_blank()) +
-  labs(color = "Collection year", shape = "Season") #  Label formatting
+  labs(shape = "Season", color = "Collection year") #  Label formatting
   
 # color code
-# cc <- scales::seq_gradient_pal("lightblue2", "midnightblue")(seq(0,1,length.out=12))
-  NMDS_new_peakpoc 
-  # + scale_color_manual(values=cc)
+cc_com <- scales::seq_gradient_pal("lightblue2", "midnightblue")(seq(0,1,length.out=12))
+  NMDS_new_peakpoc +
+    scale_color_manual(values=cc_peakpoc)
 ```
 
 ## Analyze by season
@@ -439,10 +438,12 @@ NMDS_new_summer <- ggplot(data.scores_summer, aes(x = NMDS1, y= NMDS2)) +
   
 # color code
  cc <- scales::seq_gradient_pal("pink", "red")(seq(0,1,length.out=12))
-  NMDS_new_spring  + scale_color_manual(values=cc)
+  NMDS_new_spring  +  scale_color_viridis_d(option = "plasma")
+
   
   cc2 <- scales::seq_gradient_pal("lightblue", "darkblue")(seq(0,1,length.out=12))
-  NMDS_new_summer + scale_color_manual(values=cc2)
+  NMDS_new_summer +  scale_color_viridis_d()
+
 
 ```
 
@@ -468,7 +469,7 @@ sample_data(Ps_hellinger)$collection_date_end <- as.Date(sample_data(Ps_hellinge
 sample_data(Ps_hellinger)$year <- as.factor(format(data.scores_peakpoc$collection_date_end, "%Y")) # This is to add points by year
 
 # ordinate
-rda_peakpoc <- ordinate(Ps_hellinger, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature)
+rda_peakpoc <- ordinate(Ps_hellinger, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature + Depth)
 
 # Plot
 
@@ -538,8 +539,8 @@ sample_data(summer_RDA)$collection_date_end <- as.Date(sample_data(summer_RDA)$c
 sample_data(summer_RDA)$year <- as.factor(format(sample_data(summer_RDA)$collection_date_end, "%Y")) # This is to add points by year
 
 # ordinate
-rda_spring <- ordinate(spring_RDA, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature)
-rda_summer <- ordinate(summer_RDA, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature)
+rda_spring <- ordinate(spring_RDA, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature + Depth)
+rda_summer <- ordinate(summer_RDA, method = "RDA", distance = "bray", formula = ~ Ice + Chlorophyll_a + Temperature + Depth)
 
 # Plot
 
@@ -588,7 +589,8 @@ RDA_spring +
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
     labs( color = "Year") + # Label formatting
-    scale_color_manual(values=cc)
+    #scale_color_manual(values=cc) 
+   scale_color_viridis_d(option = "plasma")
 
 # Make a new graphic
 RDA_summer + 
@@ -615,7 +617,7 @@ RDA_summer +
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
     labs( color = "Year") + # Label formatting
-    scale_color_manual(values=cc2)
+     scale_color_viridis_d()
 ```
 
 
@@ -631,6 +633,7 @@ Ps_MDS_peakpoc <- ordinate(Ps_hellinger, "MDS", "bray")
 #by sample sites
 MDS_peakpoc <- plot_ordination(Ps_hellinger, Ps_MDS_peakpoc, color = "year", shape = "season") +
   geom_point(size = 4) + # Choosing mapping for the plot 
+  
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), # Text formatting
     axis.text.x = element_text(colour = "black", face = "bold", size = 12), # axis text formatting
     legend.text = element_text(size = 12, face ="bold", colour ="black"), # legend text formatting
@@ -640,7 +643,7 @@ MDS_peakpoc <- plot_ordination(Ps_hellinger, Ps_MDS_peakpoc, color = "year", sha
     panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2), # change background color
     legend.key=element_blank()) + 
     labs(color = "Year", shape = "Season") + # Label formatting
-    scale_color_manual(values=cc)
+    scale_color_manual(values=cc_peakpoc)
 MDS_peakpoc
 
 ```

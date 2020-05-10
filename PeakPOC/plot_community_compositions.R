@@ -142,7 +142,7 @@ StackedBarplotClr(
 
 StackedBarplotClr(
   x = clr_order_peakpoc,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_order_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_order_EUK_FRAM_spring.pdf",
   main = "Community Composition (Order)",
   ylab = "relative abundance clr",
   inset = c( -0.6,-0.02),
@@ -159,7 +159,7 @@ StackedBarplotClr(
 
 StackedBarplotClr(
   x = clr_family_peakpoc,
-  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_family_EUK_FRAM.pdf",
+  save = "C:\\Users\\MSI\\AppData\\Local\\Packages\\CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc\\LocalState\\rootfs\\home\\matomo\\jacobs\\BCCB_Thesis\\PeakPOC\\peakpoc_thesis_fiigures\\Community_family_EUK_FRAM_spring.pdf",
   main = "Community Composition (Family)",
   ylab = "relative abundance clr",
   inset = c( -1.0,-0.02),
